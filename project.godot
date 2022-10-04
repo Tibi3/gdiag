@@ -15,6 +15,11 @@ _global_script_classes=[ {
 "path": "res://addons/gdiag/gdiag.gd"
 }, {
 "base": "Reference",
+"class": "GDiagError",
+"language": "GDScript",
+"path": "res://addons/gdiag/gdiag_error.gd"
+}, {
+"base": "Reference",
 "class": "WAT",
 "language": "GDScript",
 "path": "res://addons/WAT/namespace.gd"
@@ -26,6 +31,7 @@ _global_script_classes=[ {
 } ]
 _global_script_class_icons={
 "GDiag": "",
+"GDiagError": "",
 "WAT": "",
 "WATTest": ""
 }

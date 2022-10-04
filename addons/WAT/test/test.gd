@@ -29,7 +29,7 @@ signal asserted
 signal test_method_finished
 signal test_script_finished
 signal results_received
-		
+
 func setup(directory = "", filepath = "", methods = []):
 	_methods = methods
 	_case = preload("res://addons/WAT/test/case.gd").new(directory, filepath, title(), self)
@@ -49,7 +49,7 @@ func run():
 				emit_signal("test_method_finished")
 	yield(call_function("end"), COMPLETED)
 	emit_signal("test_script_finished", get_results())
-	
+
 func call_function(function, cursor = 0):
 	var s = call(function) if function != "execute" else execute(cursor)
 	call_deferred("emit_signal", COMPLETED)
@@ -89,31 +89,31 @@ func _ready() -> void:
 
 func start():
 	pass
-	
+
 func pre():
 	pass
-	
+
 func post():
 	pass
-	
+
 func end():
 	pass
-	
+
 func any():
 	return any.new()
-	
+
 func watch(emitter, event: String) -> void:
 	_watcher.watch(emitter, event)
-	
+
 func unwatch(emitter, event: String) -> void:
 	_watcher.unwatch(emitter, event)
-	
+
 func record(who: Object, properties: Array) -> Node:
 	var record = recorder.new()
 	record.record(who, properties)
 	add_child(record)
 	return record
-	
+
 ## Thanks to bitwes @ https://github.com/bitwes/Gut/
 func simulate(obj, times, delta):
 	for i in range(times):
@@ -124,37 +124,37 @@ func simulate(obj, times, delta):
 
 		for kid in obj.get_children():
 			simulate(kid, 1, delta)
-	
+
 func describe(message: String) -> void:
 	#get_parent().on_method_described(message)
 	emit_signal("described", message)
-	
+
 func title() -> String:
 	var path: String = get_script().get_path()
-	var substr: String = path.substr(path.find_last("/") + 1, 
+	var substr: String = path.substr(path.find_last("/") + 1,
 	path.find(".gd")).replace(".gd", "").replace("test", "").replace(".", " ").capitalize()
 	return substr
-	
+
 func path() -> String:
 	# Expand for suites
 	return get_script().get_path()
-	
+
 func parameters(list: Array) -> void:
 	rerun_method = _parameters.parameters(list)
-	
+
 func until_signal(emitter: Object, event: String, time_limit: float) -> Node:
 	watch(emitter, event)
 	return _yielder.until_signal(time_limit, emitter, event)
 
 func until_timeout(time_limit: float) -> Node:
 	return _yielder.until_timeout(time_limit)
-		
+
 func get_results() -> Dictionary:
 	_case.calculate()
 	var results: Dictionary = _case.to_dictionary()
 	_case.free()
 	return results
-	
+
 func get_test_methods() -> Array:
 	var methods: Array = []
 	for method in get_script().get_script_method_list():
