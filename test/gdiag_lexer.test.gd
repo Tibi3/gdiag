@@ -16,7 +16,7 @@ func test_get_token() -> void:
 	var tokens := lexer.get_tokens(p["src"])
 
 	asserts.is_Array(tokens, "tokens should be an array")
-	asserts.is_equal(tokens.size(), 1, "length of tokens should be 1")
+	asserts.is_equal(tokens.size(), 3, "length of tokens should be 1")
 	asserts.is_equal(tokens[0].type, p["expected_type"], "type of token should be %d" % p["expected_type"])
 	asserts.is_equal(tokens[0].value, p["expected_value"], "value of token should be %s" % p["expected_value"])
 
@@ -25,7 +25,7 @@ func test_get_error() -> void:
 	describe("gets the correct error")
 	parameters([
 		["src", "expected_error"],
-		["Jane: 'Hello player'", GDiagError.Code.L_UNEXPECTED_TOKEN],
+		["Jane: 'Hello player'", GDiagError.Code.L_UNEXPECTED_TEXT],
 		["Jane: \"Hello player", GDiagError.Code.L_NO_CLOSING_QUOTATION_MARK],
 	])
 

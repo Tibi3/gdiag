@@ -1,13 +1,21 @@
 class_name GDiagError
 
 enum Code {
-	L_UNEXPECTED_TOKEN
+	L_UNEXPECTED_TEXT
 	L_NO_CLOSING_QUOTATION_MARK
+	P_UNEXPECTED_TOKEN
+	P_EXPECTED_TYPE
+	P_ANSWER_HAS_TO_END_OPTIONAL_OR_MAIN
+	P_NOT_IMPLEMENTED_YET
 }
 
 const ERRORS := {
-	Code.L_UNEXPECTED_TOKEN: "Unexpected token: {token}...",
-	Code.L_NO_CLOSING_QUOTATION_MARK: "Quotation mark has no closing pair. Put a \" after your text."
+	Code.L_UNEXPECTED_TEXT: "Unexpected text: {text}...",
+	Code.L_NO_CLOSING_QUOTATION_MARK: "Quotation mark has no closing pair. Put a \" after your text.",
+	Code.P_UNEXPECTED_TOKEN: "Expected {expected}, but got token: {token}.",
+	Code.P_EXPECTED_TYPE: "Expected one of bool, int, float, String, func, but got {token}.",
+	Code.P_ANSWER_HAS_TO_END_OPTIONAL_OR_MAIN: "Answer has to end with 'optional' or 'main'.",
+	Code.P_NOT_IMPLEMENTED_YET: "Not implemented yet."
 }
 
 var code: int

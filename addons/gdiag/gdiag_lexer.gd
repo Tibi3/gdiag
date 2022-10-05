@@ -8,7 +8,7 @@ class Token:
 		REQUEST, CHARACTERS,
 		IF, CLOSE,
 		STRING, INT, FLOAT, BOOL, FUNC,
-		ONCE, OPTIONAL,
+		ONCE, OPTIONAL, MAIN,
 		ID,
 		INT_LITERAL, FLOAT_LITERAL, BOOL_LITERAL, STRING_LITERAL,
 		EOF
@@ -27,6 +27,9 @@ class Token:
 
 	func _to_string() -> String:
 		return "{ type: %s, value: '%s', line: %d, column: %d }" % [ Type.keys()[type], value, line, column ]
+
+	static func get_type_name(p_n: int) -> String:
+		return Type.keys()[p_n]
 
 var TOKEN_PATTERNS := []
 
@@ -65,6 +68,7 @@ func _init() -> void:
 	_add_pattern_to(Token.Type.FUNC, "^func")
 	_add_pattern_to(Token.Type.ONCE, "^once")
 	_add_pattern_to(Token.Type.OPTIONAL, "^optional")
+	_add_pattern_to(Token.Type.MAIN, "^main")
 	_add_pattern_to(Token.Type.FLOAT_LITERAL, "^\\d+\\.\\d+")
 	_add_pattern_to(Token.Type.INT_LITERAL, "^\\d+")
 	_add_pattern_to(Token.Type.BOOL_LITERAL, "^true|false")
@@ -74,7 +78,7 @@ func _init() -> void:
 	_comment_regex = _create_regex("^#.*")
 	_whitespace_regex = _create_regex("^[^\\S\\r\\n]+")
 
-	assert(TOKEN_PATTERNS.size() == Token.Type.keys().size() - 1, "Should be one pattern for every token type except EOF")
+	assert(TOKEN_PATTERNS.size() == Token.Type.keys().size() - 1, "Should be one pattern for every token type except EOF.")
 
 # reset errors, return an array of tokens
 func get_tokens(p_from: String) -> Array:
@@ -135,12 +139,14 @@ func get_tokens(p_from: String) -> Array:
 					_current_column))
 		else:
 			_errors.push_back(GDiagError.new(
-					GDiagError.Code.L_UNEXPECTED_TOKEN,
+					GDiagError.Code.L_UNEXPECTED_TEXT,
 					_current_line,
 					_current_column,
-					{ "token": p_from.substr(0, min(10, p_from.length())) }))
+					{ "text": p_from.substr(0, min(10, p_from.length())) }))
 		break
 
+	tokens.push_back(Token.new(Token.Type.EOF, null, -1, -1))
+	tokens.push_back(Token.new(Token.Type.EOF, null, -1, -1))
 	return tokens
 
 
