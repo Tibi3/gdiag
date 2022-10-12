@@ -47,6 +47,12 @@ var _current_index: int = -1
 func get_errors() -> Array:
 	return _errors
 
+
+# TODO: BFM
+"""
+<gdiag_script>				::= <request> <characters> <node>+
+<request>					::= "__request__" (<id> ":" <type>)+
+"""
 func parse(p_tokens: Array) -> Result:
 	_tokens = p_tokens
 	var result := Result.new()
@@ -134,30 +140,27 @@ func _parse_node() -> Dictionary:
 	if _match_and_eat(GDiagLexer.Token.Type.COLON) == null:
 		return {}
 
-	while _peek().type == GDiagLexer.Token.Type.ID:
-		match _peek(2).type:
-			GDiagLexer.Token.Type.COLON:
-				var res := _parse_paragraph()
-				if res.empty():
-					return {}
-				node["children"].push_back(res)
-			GDiagLexer.Token.Type.COMMA:
-				var res := _parse_jump()
-				if res.empty():
-					return {}
-				node["children"].push_back(res)
-			_:
-				_errors.push_back(GDiagError.new(
-						GDiagError.Code.P_UNEXPECTED_TOKEN,
-						_peek(2).line,
-						_peek(2).column,
-						{
-							"expected": GDiagLexer.Token.get_type_name(GDiagLexer.Token.Type.COLON)
-									+ " or " + GDiagLexer.Token.get_type_name(GDiagLexer.Token.Type.COMMA),
-							"token": GDiagLexer.Token.get_type_name(_peek().type)
-						}
-				))
+	while true:
+		if _peek().type == GDiagLexer.Token.Type.JUMP:
+			var res := _parse_jump()
+			if res.empty():
 				return {}
+			node["children"].push_back(res)
+		elif _peek().type == GDiagLexer.Token.Type.ID:
+			var res := _parse_paragraph()
+			if res.empty():
+				return {}
+			node["children"].push_back(res)
+		else:
+			break
+
+	if node["children"].size() == 0:
+		_errors.push_back(GDiagError.new(
+				GDiagError.Code.P_NODE_HAS_NO_PARAGRAPH,
+				_peek().line,
+				_peek().column,
+				{ "name": node["name"] }))
+		return {}
 
 	return node
 
@@ -179,7 +182,7 @@ func _parse_paragraph() -> Dictionary:
 		"text": "",
 		"answers": []
 	}
-	_eat()
+	_match_and_eat(GDiagLexer.Token.Type.COLON)
 	if _peek().type == GDiagLexer.Token.Type.IF:
 		var condition = _parse_if()
 		if condition.empty():
@@ -213,9 +216,7 @@ func _parse_paragraph() -> Dictionary:
 
 func _parse_if() -> Dictionary:
 	_eat()
-
-	_errors.push_back(GDiagError.new(GDiagError.Code.P_NOT_IMPLEMENTED_YET, _peek().line, _peek().column))
-	return {}
+	return _parse_expression()
 
 
 func _parse_jump() -> Dictionary:
@@ -295,7 +296,7 @@ func _parse_expression() -> Dictionary:
 		output_queue.push_back(operator_stack.pop_back())
 
 	while output_queue.size() > 0:
-		# if it's a dictionary it has to be a literal, variable of function call.
+		# if it's a dictionary it has to be a literal, variable or function call.
 		if typeof(output_queue[0]) == TYPE_DICTIONARY:
 			operator_stack.push_back(output_queue.pop_front())
 		else: match output_queue[0].type:

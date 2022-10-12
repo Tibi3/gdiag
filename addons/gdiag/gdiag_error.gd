@@ -9,6 +9,7 @@ enum Code {
 	P_UNEXPECTED_RP
 	P_EXPECTED_OPERAND_AFTER_UNARY_OP
 	P_UNEXPECTED_TOKEN_IN_EXPRESSION
+	P_NODE_HAS_NO_PARAGRAPH
 	P_NOT_IMPLEMENTED_YET
 }
 
@@ -21,6 +22,7 @@ const ERRORS := {
 	Code.P_UNEXPECTED_RP: "Unexpected ')' in expression.",
 	Code.P_EXPECTED_OPERAND_AFTER_UNARY_OP: "Expected literal or variable after unary operator(+, -, !).",
 	Code.P_UNEXPECTED_TOKEN_IN_EXPRESSION: "Unexpected token {token} in expression.",
+	Code.P_NODE_HAS_NO_PARAGRAPH: "Node {name} has no paragraph.",
 	Code.P_NOT_IMPLEMENTED_YET: "Not implemented yet."
 }
 

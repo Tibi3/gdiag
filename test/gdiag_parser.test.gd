@@ -3,7 +3,7 @@ extends WAT.Test
 const GDiagLexer := preload("res://addons/gdiag/gdiag_lexer.gd")
 const GDiagParser := preload("res://addons/gdiag/gdiag_parser.gd")
 
-func _test_parser() -> void:
+func test_parser() -> void:
 	describe("parser")
 
 	var lexer := GDiagLexer.new()
@@ -33,12 +33,13 @@ __characters__
 """)
 	var parser := GDiagParser.new()
 	var result := parser.parse(tokens)
+
 	print(result)
 	print(parser.get_errors())
 	asserts.is_true(true)
 
 
-func test_expression() -> void:
+func _test_expression() -> void:
 	describe("expression")
 
 	var lexer := GDiagLexer.new()

@@ -9,7 +9,7 @@ class Token:
 		EQUAL, NOT_EQUAL, LESS_THAN, LESS_THAN_EQUAL, GREATER_THAN, GREATER_THAN_EQUAL,
 		OR, AND,
 		REQUEST, CHARACTERS,
-		IF, CLOSE,
+		IF, CLOSE, JUMP,
 		STRING, INT, FLOAT, BOOL, FUNC,
 		ONCE, OPTIONAL, MAIN,
 		ID,
@@ -18,7 +18,7 @@ class Token:
 	}
 
 	var type: int	# Token.Type
-	var value 		# String, int, float, bool, null
+	var value 		# String | int | float | bool | null
 	var line: int
 	var column: int
 
@@ -65,6 +65,7 @@ func _init() -> void:
 	_add_pattern_to(Token.Type.REQUEST, "^__request__")
 	_add_pattern_to(Token.Type.CHARACTERS, "^__characters__")
 	_add_pattern_to(Token.Type.IF, "^if")
+	_add_pattern_to(Token.Type.JUMP, "^jump")
 	_add_pattern_to(Token.Type.CLOSE, "^close")
 	_add_pattern_to(Token.Type.INT, "^int")
 	_add_pattern_to(Token.Type.FLOAT, "^float")
