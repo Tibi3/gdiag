@@ -10,7 +10,34 @@ class Result:
 	func _to_string() -> String:
 		return JSON.print({ "request": request, "characters": characters, "nodes": nodes }, "\t")
 
-enum Type { ID, PARAGRAPH, JUMP, FUNCTION_CALL, ANSWER }
+const PRESEDENCE := {
+	GDiagLexer.Token.Type.LEFT_PARENTHESIS: -99,
+	GDiagLexer.Token.Type.OR: -1,
+	GDiagLexer.Token.Type.AND: -1,
+	GDiagLexer.Token.Type.LESS_THAN: 0,
+	GDiagLexer.Token.Type.LESS_THAN_EQUAL: 0,
+	GDiagLexer.Token.Type.GREATER_THAN: 0,
+	GDiagLexer.Token.Type.GREATER_THAN_EQUAL: 0,
+	GDiagLexer.Token.Type.EQUAL: 0,
+	GDiagLexer.Token.Type.NOT_EQUAL: 0,
+	GDiagLexer.Token.Type.PLUS: 1,
+	GDiagLexer.Token.Type.MINUS: 1,
+	GDiagLexer.Token.Type.ASTERISK: 2,
+	GDiagLexer.Token.Type.SLASH: 2,
+	GDiagLexer.Token.Type.PERCENT_SIGN: 2,
+
+	GDiagLexer.Token.Type.UNARY_PLUS: 3,
+	GDiagLexer.Token.Type.UNARY_MINUS: 3,
+	GDiagLexer.Token.Type.RIGHT_PARENTHESIS: 99
+}
+
+enum Type {
+	ID, PARAGRAPH, JUMP, FUNCTION_CALL, ANSWER,
+	BINARY_OP, UNARY_OP,
+	INT, FLOAT, BOOL, STRING
+	VARIABLE, LITERAL
+}
+
 
 var _tokens: Array
 var _errors: Array
@@ -185,6 +212,8 @@ func _parse_paragraph() -> Dictionary:
 
 
 func _parse_if() -> Dictionary:
+	_eat()
+
 	_errors.push_back(GDiagError.new(GDiagError.Code.P_NOT_IMPLEMENTED_YET, _peek().line, _peek().column))
 	return {}
 
@@ -192,6 +221,163 @@ func _parse_if() -> Dictionary:
 func _parse_jump() -> Dictionary:
 	_errors.push_back(GDiagError.new(GDiagError.Code.P_NOT_IMPLEMENTED_YET, _peek().line, _peek().column))
 	return {}
+
+
+# It's a hacky implementation of the Shunting yard algorithm
+func _parse_expression() -> Dictionary:
+	var operator_stack := []
+	var output_queue := []
+
+	while true:
+		match _peek().type:
+			GDiagLexer.Token.Type.INT_LITERAL,\
+			GDiagLexer.Token.Type.FLOAT_LITERAL,\
+			GDiagLexer.Token.Type.BOOL_LITERAL,\
+			GDiagLexer.Token.Type.STRING_LITERAL:
+				output_queue.push_back(_parse_literal())
+			GDiagLexer.Token.Type.ID:
+				if _peek(2).type == GDiagLexer.Token.Type.LEFT_PARENTHESIS:
+					output_queue.push_back(_parse_function_call())
+				else:
+					output_queue.push_back(_parse_variable())
+			GDiagLexer.Token.Type.LEFT_PARENTHESIS:
+				operator_stack.push_back(_eat())
+			GDiagLexer.Token.Type.RIGHT_PARENTHESIS:
+				_eat()
+				if operator_stack.size() <= 1:
+					_errors.push_back(GDiagError.new(
+							GDiagError.Code.P_UNEXPECTED_RP,
+							_peek().line,
+							_peek().column))
+					return {}
+				while true:
+					if operator_stack.size() == 0:
+						_errors.push_back(GDiagError.new(
+								GDiagError.Code.P_UNEXPECTED_RP,
+								_peek().line,
+								_peek().column))
+						return {}
+					var op: GDiagLexer.Token = operator_stack.pop_back()
+					if op.type == GDiagLexer.Token.Type.LEFT_PARENTHESIS:
+						break
+					output_queue.push_back(op)
+			GDiagLexer.Token.Type.PLUS,\
+			GDiagLexer.Token.Type.MINUS,\
+			GDiagLexer.Token.Type.ASTERISK,\
+			GDiagLexer.Token.Type.SLASH,\
+			GDiagLexer.Token.Type.PERCENT_SIGN,\
+			GDiagLexer.Token.Type.GREATER_THAN,\
+			GDiagLexer.Token.Type.GREATER_THAN_EQUAL,\
+			GDiagLexer.Token.Type.LESS_THAN,\
+			GDiagLexer.Token.Type.LESS_THAN_EQUAL,\
+			GDiagLexer.Token.Type.EQUAL,\
+			GDiagLexer.Token.Type.NOT_EQUAL,\
+			GDiagLexer.Token.Type.AND,\
+			GDiagLexer.Token.Type.OR:
+				if operator_stack.size() == 0:
+					var token := _eat()
+					if  _current_index == 0:
+						token.type = GDiagLexer.Token.Type.UNARY_MINUS
+					operator_stack.push_back(token)
+				elif _current_index == -1 || _is_op(_peek(0).type):
+					var token := _eat()
+					token.type = GDiagLexer.Token.Type.UNARY_MINUS
+					operator_stack.push_back(token)
+				elif PRESEDENCE[operator_stack[-1].type] >= PRESEDENCE[_peek().type]:
+					output_queue.push_back(operator_stack.pop_back())
+					operator_stack.push_back(_eat())
+				else:
+					operator_stack.push_back(_eat())
+			_:
+				break
+
+	while operator_stack.size() > 0:
+		output_queue.push_back(operator_stack.pop_back())
+
+	while output_queue.size() > 0:
+		# if it's a dictionary it has to be a literal, variable of function call.
+		if typeof(output_queue[0]) == TYPE_DICTIONARY:
+			operator_stack.push_back(output_queue.pop_front())
+		else: match output_queue[0].type:
+			GDiagLexer.Token.Type.UNARY_MINUS:
+				if operator_stack.size() == 0:
+					_errors.push_back(GDiagError.new(
+								GDiagError.Code.P_EXPECTED_OPERAND_AFTER_UNARY_OP,
+								_peek().line,
+								_peek().column))
+					return {}
+				operator_stack.push_back(_parse_unary(output_queue.pop_front(), operator_stack.pop_back()))
+			_:
+				if operator_stack.size() < 2:
+					_errors.push_back(GDiagError.new(
+							GDiagError.Code.P_UNEXPECTED_TOKEN_IN_EXPRESSION,
+							_peek().line,
+							_peek().column,
+							{"token": output_queue[0]}))
+					return {}
+				var right = operator_stack.pop_back()
+				var left = operator_stack.pop_back()
+				operator_stack.push_back(_parse_binary(left, output_queue.pop_front(), right))
+
+	if operator_stack.size() != 1:
+		# I don't know if this branch is reachable or not.
+		_errors.push_back(GDiagError.new(
+				GDiagError.Code.P_UNEXPECTED_TOKEN_IN_EXPRESSION,
+				_peek().line,
+				_peek().column,
+				{"token": operator_stack[0]}))
+		return {}
+
+	return operator_stack.pop_back()
+
+
+func _parse_literal() -> Dictionary:
+	var res := {}
+	match _peek().type:
+		GDiagLexer.Token.Type.INT_LITERAL:
+			res["type"] = Type.LITERAL
+			res["type_type"] = Type.INT
+			res["value"] = _eat().value
+		GDiagLexer.Token.Type.FLOAT_LITERAL:
+			res["type"] = Type.LITERAL
+			res["type_type"] = Type.FLOAT
+			res["value"] = _eat().value
+		GDiagLexer.Token.Type.BOOL_LITERAL:
+			res["type"] = Type.LITERAL
+			res["type_type"] = Type.BOOL
+			res["value"] = _eat().value
+		GDiagLexer.Token.Type.STRING_LITERAL:
+			res["type"] = Type.LITERAL
+			res["type_type"] = Type.STRING
+			res["value"] = _eat().value
+
+	return res
+
+
+func _parse_unary(op: GDiagLexer.Token, operand: Dictionary) -> Dictionary:
+	# TODO: Check type
+	return {
+		"type": Type.UNARY_OP,
+		"operator": op,
+		"operand": operand
+	}
+
+
+func _parse_binary(left: Dictionary, op: GDiagLexer.Token, right: Dictionary) -> Dictionary:
+	# TODO: Check types
+	return {
+		"type": Type.BINARY_OP,
+		"operator": op,
+		"left": left,
+		"right": right,
+	}
+
+
+func _parse_variable() -> Dictionary:
+	return {
+		"type": Type.VARIABLE,
+		"name": _eat().value
+	}
 
 
 func _parse_function_call() -> Dictionary:
@@ -269,3 +455,23 @@ func _match_and_eat(p_type: int) -> GDiagLexer.Token:
 		return null
 	_current_index += 1
 	return _tokens[_current_index]
+
+
+func _is_op(type: int) -> bool:
+	match type:
+		GDiagLexer.Token.Type.PLUS,\
+		GDiagLexer.Token.Type.MINUS,\
+		GDiagLexer.Token.Type.ASTERISK,\
+		GDiagLexer.Token.Type.SLASH,\
+		GDiagLexer.Token.Type.PERCENT_SIGN,\
+		GDiagLexer.Token.Type.LESS_THAN,\
+		GDiagLexer.Token.Type.LESS_THAN_EQUAL,\
+		GDiagLexer.Token.Type.GREATER_THAN,\
+		GDiagLexer.Token.Type.GREATER_THAN_EQUAL,\
+		GDiagLexer.Token.Type.EQUAL,\
+		GDiagLexer.Token.Type.NOT_EQUAL,\
+		GDiagLexer.Token.Type.AND,\
+		GDiagLexer.Token.Type.OR:
+			return true
+		_:
+			return false

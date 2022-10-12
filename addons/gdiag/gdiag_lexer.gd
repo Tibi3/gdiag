@@ -4,7 +4,10 @@ class Token:
 	enum Type {
 		RIGHT_SQUARE_BRACKET, LEFT_SQUARE_BRACKET, RIGHT_PARENTHESIS, LEFT_PARENTHESIS,
 		COLON, COMMA, PLUS, MINUS, SLASH, ASTERISK, PERCENT_SIGN,
+		# These two are used in the parser to distinguish binary and unary operations.
+		UNARY_PLUS, UNARY_MINUS,
 		EQUAL, NOT_EQUAL, LESS_THAN, LESS_THAN_EQUAL, GREATER_THAN, GREATER_THAN_EQUAL,
+		OR, AND,
 		REQUEST, CHARACTERS,
 		IF, CLOSE,
 		STRING, INT, FLOAT, BOOL, FUNC,
@@ -57,6 +60,8 @@ func _init() -> void:
 	_add_pattern_to(Token.Type.GREATER_THAN_EQUAL, "^>=")
 	_add_pattern_to(Token.Type.LESS_THAN, "^<")
 	_add_pattern_to(Token.Type.GREATER_THAN, "^>")
+	_add_pattern_to(Token.Type.OR, "^(or|\\|\\|)")
+	_add_pattern_to(Token.Type.AND, "^(and|&&)")
 	_add_pattern_to(Token.Type.REQUEST, "^__request__")
 	_add_pattern_to(Token.Type.CHARACTERS, "^__characters__")
 	_add_pattern_to(Token.Type.IF, "^if")
@@ -78,7 +83,8 @@ func _init() -> void:
 	_comment_regex = _create_regex("^#.*")
 	_whitespace_regex = _create_regex("^[^\\S\\r\\n]+")
 
-	assert(TOKEN_PATTERNS.size() == Token.Type.keys().size() - 1, "Should be one pattern for every token type except EOF.")
+	assert(TOKEN_PATTERNS.size() == Token.Type.keys().size() - 3,
+			"Should be one pattern for every token type except EOF, UNARY_PLUS, UNARY_MINUS.")
 
 # reset errors, return an array of tokens
 func get_tokens(p_from: String) -> Array:

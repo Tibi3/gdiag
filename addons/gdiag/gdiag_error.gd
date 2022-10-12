@@ -6,6 +6,9 @@ enum Code {
 	P_UNEXPECTED_TOKEN
 	P_EXPECTED_TYPE
 	P_ANSWER_HAS_TO_END_OPTIONAL_OR_MAIN
+	P_UNEXPECTED_RP
+	P_EXPECTED_OPERAND_AFTER_UNARY_OP
+	P_UNEXPECTED_TOKEN_IN_EXPRESSION
 	P_NOT_IMPLEMENTED_YET
 }
 
@@ -15,6 +18,9 @@ const ERRORS := {
 	Code.P_UNEXPECTED_TOKEN: "Expected {expected}, but got token: {token}.",
 	Code.P_EXPECTED_TYPE: "Expected one of bool, int, float, String, func, but got {token}.",
 	Code.P_ANSWER_HAS_TO_END_OPTIONAL_OR_MAIN: "Answer has to end with 'optional' or 'main'.",
+	Code.P_UNEXPECTED_RP: "Unexpected ')' in expression.",
+	Code.P_EXPECTED_OPERAND_AFTER_UNARY_OP: "Expected literal or variable after unary operator(+, -, !).",
+	Code.P_UNEXPECTED_TOKEN_IN_EXPRESSION: "Unexpected token {token} in expression.",
 	Code.P_NOT_IMPLEMENTED_YET: "Not implemented yet."
 }
 
