@@ -5,10 +5,7 @@ const GDiagParser := preload("res://addons/gdiag/gdiag_parser.gd")
 
 func test_parser() -> void:
 	describe("parser")
-
-	var lexer := GDiagLexer.new()
-	var tokens := lexer.get_tokens(
-"""
+	var src = """
 __request__
 	player_name: String
 	winter: bool
@@ -17,6 +14,8 @@ __characters__
 	Player, Jane
 
 [MAIN]:
+	jump: if true or false, HERE
+	jump: HERE
 	Jane: if player_name == "Szia", "Hello!"
 		- HI, main
 		- HELLO, main
@@ -29,13 +28,16 @@ __characters__
 
 [HEY]:
 	Player: "Hey!"
+"""
 
-""")
+	var lexer := GDiagLexer.new()
 	var parser := GDiagParser.new()
+
+	var tokens := lexer.get_tokens(src)
 	var result := parser.parse(tokens)
 
-	print(result)
-	print(parser.get_errors())
+#	print(result)
+#	print(parser.get_errors())
 	asserts.is_true(true)
 
 
@@ -48,6 +50,6 @@ func _test_expression() -> void:
 	parser._tokens = tokens
 	var result := parser._parse_expression()
 
-	print(to_json(result))
-	print(parser.get_errors())
+#	print(to_json(result))
+#	print(parser.get_errors())
 	asserts.is_true(true)

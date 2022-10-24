@@ -77,7 +77,7 @@ func _init() -> void:
 	_add_pattern_to(Token.Type.MAIN, "^main")
 	_add_pattern_to(Token.Type.FLOAT_LITERAL, "^\\d+\\.\\d+")
 	_add_pattern_to(Token.Type.INT_LITERAL, "^\\d+")
-	_add_pattern_to(Token.Type.BOOL_LITERAL, "^true|false")
+	_add_pattern_to(Token.Type.BOOL_LITERAL, "^(true|false)")
 	_add_pattern_to(Token.Type.STRING_LITERAL, "^\"((?:\\\\|\\\\\"|[^\"])*)\"")
 	_add_pattern_to(Token.Type.ID, "^[a-zA-Z_]+[a-zA-Z_0-9]*")
 
@@ -90,7 +90,6 @@ func _init() -> void:
 # reset errors, return an array of tokens
 func get_tokens(p_from: String) -> Array:
 	_errors = []
-
 	var tokens := []
 	var original_length: int
 
@@ -116,25 +115,27 @@ func get_tokens(p_from: String) -> Array:
 		var found_token := false
 		for pattern in TOKEN_PATTERNS:
 			var res := (pattern["pattern"] as RegEx).search(p_from)
-			if res != null:
-				var val := p_from.substr(0, res.get_end())
-				match pattern["type"]:
-					Token.Type.INT_LITERAL:
-						tokens.push_back(Token.new(pattern["type"], int(val), _current_line, _current_column))
-					Token.Type.FLOAT_LITERAL:
-						tokens.push_back(Token.new(pattern["type"], float(val), _current_line, _current_column))
-					Token.Type.STRING_LITERAL:
-						tokens.push_back(Token.new(pattern["type"], res.get_string(1), _current_line, _current_column))
-					Token.Type.BOOL_LITERAL:
-						tokens.push_back(Token.new(pattern["type"], val == "true", _current_line, _current_column))
-					Token.Type.ID:
-						tokens.push_back(Token.new(pattern["type"], val, _current_line, _current_column))
-					_:
-						tokens.push_back(Token.new(pattern["type"], null, _current_line, _current_column))
-				_current_column += val.length()
-				p_from = p_from.substr(res.get_end())
-				found_token = true
-				break
+			if res == null:
+				continue
+
+			var val := p_from.substr(0, res.get_end())
+			match pattern["type"]:
+				Token.Type.INT_LITERAL:
+					tokens.push_back(Token.new(pattern["type"], int(val), _current_line, _current_column))
+				Token.Type.FLOAT_LITERAL:
+					tokens.push_back(Token.new(pattern["type"], float(val), _current_line, _current_column))
+				Token.Type.STRING_LITERAL:
+					tokens.push_back(Token.new(pattern["type"], res.get_string(1), _current_line, _current_column))
+				Token.Type.BOOL_LITERAL:
+					tokens.push_back(Token.new(pattern["type"], val == "true", _current_line, _current_column))
+				Token.Type.ID:
+					tokens.push_back(Token.new(pattern["type"], val, _current_line, _current_column))
+				_:
+					tokens.push_back(Token.new(pattern["type"], null, _current_line, _current_column))
+			_current_column += val.length()
+			p_from = p_from.substr(res.get_end())
+			found_token = true
+			break
 
 		if found_token:
 			continue

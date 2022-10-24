@@ -83,6 +83,7 @@ func _parse_request() -> Dictionary:
 	while _peek().type == GDiagLexer.Token.Type.ID:
 		var name: String = _eat().value
 
+
 		if _match_and_eat(GDiagLexer.Token.Type.COLON) == null:
 			return {}
 
@@ -220,8 +221,24 @@ func _parse_if() -> Dictionary:
 
 
 func _parse_jump() -> Dictionary:
-	_errors.push_back(GDiagError.new(GDiagError.Code.P_NOT_IMPLEMENTED_YET, _peek().line, _peek().column))
-	return {}
+	var jump := { "type": Type.JUMP, "condition": {}, "to": "" }
+	_eat() # jump
+	_match_and_eat(GDiagLexer.Token.Type.COLON)
+
+	if _peek().type == GDiagLexer.Token.Type.IF:
+		var condition := _parse_if()
+		if condition.empty():
+			return {}
+		jump["condition"] = condition
+		_match_and_eat(GDiagLexer.Token.Type.COMMA)
+
+	var to := _match_and_eat(GDiagLexer.Token.Type.ID)
+	if to == null:
+		return {}
+
+	jump["to"] = to.value
+
+	return jump
 
 
 # It's a hacky implementation of the Shunting yard algorithm
