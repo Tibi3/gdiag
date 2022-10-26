@@ -11,19 +11,25 @@ enum Code {
 	P_UNEXPECTED_TOKEN_IN_EXPRESSION
 	P_NODE_HAS_NO_PARAGRAPH
 	P_NOT_IMPLEMENTED_YET
+	I_MISSING_FROM_CONTEXT
+	I_SHOULD_BE_OF_TYPE
+	I_NODE_NOT_FOUND
 }
 
 const ERRORS := {
 	Code.L_UNEXPECTED_TEXT: "Unexpected text: {text}...",
-	Code.L_NO_CLOSING_QUOTATION_MARK: "Quotation mark has no closing pair. Put a \" after your text.",
+	Code.L_NO_CLOSING_QUOTATION_MARK: "Quotation mark has no closing pair.",
 	Code.P_UNEXPECTED_TOKEN: "Expected {expected}, but got token: {token}.",
 	Code.P_EXPECTED_TYPE: "Expected one of bool, int, float, String, func, but got {token}.",
 	Code.P_ANSWER_HAS_TO_END_OPTIONAL_OR_MAIN: "Answer has to end with 'optional' or 'main'.",
 	Code.P_UNEXPECTED_RP: "Unexpected ')' in expression.",
-	Code.P_EXPECTED_OPERAND_AFTER_UNARY_OP: "Expected literal or variable after unary operator(+, -, !).",
+	Code.P_EXPECTED_OPERAND_AFTER_UNARY_OP: "Expected literal or variable after unary operator(+, -).",
 	Code.P_UNEXPECTED_TOKEN_IN_EXPRESSION: "Unexpected token {token} in expression.",
 	Code.P_NODE_HAS_NO_PARAGRAPH: "Node {name} has no paragraph.",
-	Code.P_NOT_IMPLEMENTED_YET: "Not implemented yet."
+	Code.P_NOT_IMPLEMENTED_YET: "Not implemented yet.",
+	Code.I_MISSING_FROM_CONTEXT: "{name} missing from context.",
+	Code.I_SHOULD_BE_OF_TYPE: "{name} should be of type {type} but got '{got}'.",
+	Code.I_NODE_NOT_FOUND: "{name} not found."
 }
 
 var code: int

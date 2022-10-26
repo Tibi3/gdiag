@@ -3,6 +3,7 @@ extends WAT.Test
 const GDiagLexer := preload("res://addons/gdiag/gdiag_lexer.gd")
 const GDiagParser := preload("res://addons/gdiag/gdiag_parser.gd")
 
+#TODO: write tests
 func test_parser() -> void:
 	describe("parser")
 	var src = """

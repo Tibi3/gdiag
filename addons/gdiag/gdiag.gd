@@ -1,4 +1,4 @@
 class_name GDiag
 extends Resource
 
-var source: String
+export(String, MULTILINE) var source: String

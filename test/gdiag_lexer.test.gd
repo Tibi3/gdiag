@@ -55,7 +55,7 @@ __characters__
 	var tokens := lexer.get_tokens(src)
 	var errors := lexer.get_errors()
 
-	asserts.is_equal(errors.size(), 0)
+	asserts.is_equal(errors.size(), 0, "expected 0 errors")
 	var index := 0
 	for expected in [
 		[GDiagLexer.Token.Type.REQUEST, null],
@@ -139,7 +139,8 @@ __characters__
 		[GDiagLexer.Token.Type.COLON, null],
 		[GDiagLexer.Token.Type.STRING_LITERAL, "Jumped here"],
 	]:
-		_check_token(tokens[index], expected[0], expected[1], index)
+		asserts.is_equal(tokens[index].type, expected[0], "types should match at index %d  %s" % [index, tokens[index]])
+		asserts.is_equal(tokens[index].value, expected[1], "values should be equal at index %d token: %s" % [index, tokens[index]])
 		index += 1
 
 
@@ -158,9 +159,4 @@ func test_get_error() -> void:
 	asserts.is_Array(errors, "errors should be an array")
 	asserts.is_equal(errors.size(), 1, "length of errors should be 1")
 	asserts.is_equal(errors[0].code, p["expected_error"], "error code should be %d" % p["expected_error"])
-
-
-func _check_token(p_token: GDiagLexer.Token, p_type: int, p_value = null, p_index = 0) -> void:
-	asserts.is_equal(p_token.type, p_type, "type missmatch at index %d  %s" % [p_index, p_token])
-	asserts.is_equal(p_token.value, p_value, "value missmatch at index %d token: %s" % [p_index, p_token])
 

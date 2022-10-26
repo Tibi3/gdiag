@@ -20,6 +20,16 @@ _global_script_classes=[ {
 "path": "res://addons/gdiag/gdiag_error.gd"
 }, {
 "base": "Reference",
+"class": "GDiagInterpreter",
+"language": "GDScript",
+"path": "res://addons/gdiag/gdiag_interpreter.gd"
+}, {
+"base": "Reference",
+"class": "GDiagResult",
+"language": "GDScript",
+"path": "res://addons/gdiag/gdiag_result.gd"
+}, {
+"base": "Reference",
 "class": "WAT",
 "language": "GDScript",
 "path": "res://addons/WAT/namespace.gd"
@@ -32,6 +42,8 @@ _global_script_classes=[ {
 _global_script_class_icons={
 "GDiag": "",
 "GDiagError": "",
+"GDiagInterpreter": "",
+"GDiagResult": "",
 "WAT": "",
 "WATTest": ""
 }
@@ -51,6 +63,7 @@ Display=8
 [application]
 
 config/name="Gdiag"
+run/main_scene="res://examples/bob/bob_example.tscn"
 config/icon="res://icon.png"
 
 [editor_plugins]
