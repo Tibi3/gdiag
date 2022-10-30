@@ -7,7 +7,8 @@ var _gdaig_int := GDiagInterpreter.new(GDiagInterpreter.Options.new())
 
 func _ready() -> void:
 	var res = _gdaig_int.start({
-		"player_name": "player"
+		"player_name": "player",
+		"increase_trust": funcref(self, "increase_trust")
 	}, preload("res://examples/bob/bob_dialogue.tres"))
 	assert(res.is_ok(), "Something wrong with bob_dialogue.tres")
 	_next()
@@ -18,7 +19,7 @@ func _next(p_to: String = "") -> void:
 
 	assert(p.is_ok(), "Error")
 
-	if typeof(p.value) == TYPE_BOOL:
+	if p.value == null:
 		ui_text.bbcode_text = "END"
 		return
 
@@ -29,6 +30,10 @@ func _next(p_to: String = "") -> void:
 
 	if p.value["answers"].size() == 0:
 		ui_text.bbcode_text += "\n\n\n\t[url=]next[/url]"
+
+
+func increase_trust() -> void:
+	print("call increase_trust")
 
 
 func _on_meta_clicked(meta: String) -> void:

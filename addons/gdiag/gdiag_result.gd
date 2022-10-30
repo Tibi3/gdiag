@@ -7,7 +7,7 @@ func is_ok() -> bool:
 	return error == null
 
 
-func ok(p_value) -> GDiagResult:
+func ok(p_value = null) -> GDiagResult:
 	assert(error == null, "error is already set")
 	value = p_value
 	return self

@@ -56,7 +56,7 @@ func start(p_context: Dictionary, p_gdiag: GDiag) -> GDiagResult:
 
 func next(p_answer: String = "") -> GDiagResult:
 	if _node_stack.size() == 0:
-		return GDiagResult.new().ok(true)
+		return GDiagResult.new().ok()
 
 	if p_answer == "":
 		var current_node: Dictionary = _tree.nodes[_stack_get().name]
@@ -68,7 +68,10 @@ func next(p_answer: String = "") -> GDiagResult:
 
 		match current_node["children"][_stack_get().index]["type"]:
 			Parser.Type.PARAGRAPH:
-				return _visit_paragraph()
+				var p := _visit_paragraph()
+				if typeof(p.value) == TYPE_BOOL:
+					return next()
+				return p
 			Parser.Type.JUMP:
 				return _visit_jump()
 
@@ -80,29 +83,40 @@ func next(p_answer: String = "") -> GDiagResult:
 	else:
 		return GDiagResult.new().err(GDiagError.new(
 				GDiagError.Code.I_NODE_NOT_FOUND,
-				-1, -1, #TODO
+				-1, -1, # TODO
 				{ "name": p_answer}))
 
 
 func _visit_jump() -> GDiagResult:
 	var jump: Dictionary = _tree.nodes[_stack_get().name]["children"][_stack_get().index]
-	#TODO: check condition
+	# TODO: check condition
 	if _tree.nodes.has(jump["to"]):
 		_node_stack.push_back(GDiagNode.new(jump["to"], -1))
 		return next()
 
 	return GDiagResult.new().err(GDiagError.new(
 			GDiagError.Code.I_NODE_NOT_FOUND,
-			-1, -1, #TODO
+			-1, -1, # TODO
 			{ "name": jump["to"]}))
 
 
 func _visit_paragraph() -> GDiagResult:
 	var paragraph: Dictionary = _tree.nodes[_stack_get().name]["children"][_stack_get().index]
-	#TODO: condition
+
+	for action in paragraph["actions"]:
+		_visit_action(action)
+
+	if !paragraph["condition"].empty():
+		var result := _visit_expression(paragraph["condition"])
+		if !result.is_ok():
+			return result
+
+		if !result.value:
+			return GDiagResult.new().ok(false)
+
 	return GDiagResult.new().ok({
 		"character": paragraph["character"],
-		#TODO: handle placeholders
+		# TODO: handle placeholders
 		"text": paragraph["text"],
 		"answers": _visit_answers()
 	})
@@ -114,15 +128,86 @@ func _visit_answers() -> Array:
 	res.resize(answers.size())
 
 	for i in range(answers.size()):
+		# TODO: check condition
 		res[i] = { "key": answers[i]["node"] }
 		if _options.show_partial_answer:
-			#TODO: handle placeholders
+			# TODO: handle placeholders
 			res[i]["text"] = _tree.nodes[answers[i]["node"]]["text"]
 		else:
 			# TODO: check node's children, handle placeholders
 			res[i]["text"] = _tree.nodes[answers[i]["node"]]["children"][0]["text"]
 
 	return res
+
+
+func _visit_action(action: Dictionary) -> GDiagResult:
+	var func_ref: FuncRef = _context[action["name"]]
+	return GDiagResult.new().ok(func_ref.call_funcv(action["params"]))
+
+
+func _visit_expression(p_exp: Dictionary) -> GDiagResult:
+	# TODO: handle error
+	match p_exp["type"]:
+		Parser.Type.BINARY_OP:
+			return _visit_binary_op(p_exp)
+		Parser.Type.UNARY_OP:
+			return _visit_unary_op(p_exp)
+		Parser.Type.FUNCTION_CALL:
+			return _visit_action(p_exp)
+		Parser.Type.VARIABLE:
+			return _visit_variable(p_exp)
+		_: # should be literal
+			return GDiagResult.new().ok(p_exp["value"])
+
+
+func _visit_binary_op(p_op) -> GDiagResult:
+	var left := _visit_expression(p_op["left"])
+	var right := _visit_expression(p_op["right"])
+	match p_op["operator"].type:
+		Lexer.Token.Type.AND:
+			return GDiagResult.new().ok(left.value && right.value)
+		Lexer.Token.Type.OR:
+			return GDiagResult.new().ok(left.value || right.value)
+		Lexer.Token.Type.PLUS:
+			return GDiagResult.new().ok(left.value + right.value)
+		Lexer.Token.Type.MINUS:
+			return GDiagResult.new().ok(left.value - right.value)
+		Lexer.Token.Type.ASTERISK:
+			return GDiagResult.new().ok(left.value * right.value)
+		Lexer.Token.Type.SLASH:
+			return GDiagResult.new().ok(left.value / right.value)
+		Lexer.Token.Type.PERCENT_SIGN:
+			return GDiagResult.new().ok(left.value % right.value)
+		Lexer.Token.Type.GREATER_THAN:
+			return GDiagResult.new().ok(left.value > right.value)
+		Lexer.Token.Type.GREATER_THAN_EQUAL:
+			return GDiagResult.new().ok(left.value >= right.value)
+		Lexer.Token.Type.LESS_THAN:
+			return GDiagResult.new().ok(left.value < right.value)
+		Lexer.Token.Type.LESS_THAN_EQUAL:
+			return GDiagResult.new().ok(left.value <= right.value)
+		Lexer.Token.Type.EQUAL:
+			return GDiagResult.new().ok(left.value == right.value)
+		Lexer.Token.Type.NOT_EQUAL:
+			return GDiagResult.new().ok(left.value != right.value)
+
+	return GDiagResult.new().error(0)
+
+
+func _visit_unary_op(p_op) -> GDiagResult:
+	var operand := _visit_expression(p_op["operand"])
+	match p_op["operator"].type:
+		Lexer.Token.Type.UNARY_PLUS:
+			return operand
+		Lexer.Token.Type.UNARY_MINUS:
+			return GDiagResult.new().ok(-operand.value)
+#		Lexer.Token.Type.NOT:
+#			return GDiagResult.new().ok(-operand.value)
+	return GDiagResult.new().ok(0)
+
+
+func _visit_variable(p_var) -> GDiagResult:
+	return GDiagResult.new().ok(_context[p_var["name"]])
 
 
 # Only for type hints
@@ -139,7 +224,7 @@ func _check_context(p_context: Dictionary, p_parser_result: Parser.Result) -> Ar
 		if !p_context.has(request_key):
 			errors.push_back(GDiagError.new(
 					GDiagError.Code.I_MISSING_FROM_CONTEXT,
-					-1, -1, #TODO
+					-1, -1, # TODO
 					{ "name": request_key }))
 			continue
 
@@ -153,7 +238,7 @@ func _check_context(p_context: Dictionary, p_parser_result: Parser.Result) -> Ar
 				|| (p_context[request_key] is FuncRef && requested_type != Lexer.Token.Type.FUNC):
 			errors.push_back(GDiagError.new(
 					GDiagError.Code.I_SHOULD_BE_OF_TYPE,
-					-1, -1, #TODO
+					-1, -1, # TODO
 					{
 						"name": request_key,
 						"type": Lexer.Token.get_type_name(requested_type),

@@ -6,12 +6,13 @@
 script = ExtResource( 1 )
 source = "__request__
 	player_name: String
+	increase_trust: func
 	
 __characters__
 	Bob, Player
 	
 [MAIN]:
-	Bob: \"Hello {{ player_name }}!\"
+	Bob: if player_name != \"Sanyi\", \"Hello {{ player_name }}!\"
 	Player: \"Hey\"
 	Bob: \"I'm looking for Jack. Do you know where is him?\"
 		- CANNOT_TELL_YOU, main
@@ -28,4 +29,4 @@ __characters__
 
 [YES]:
 	Player: \"He is at the lake.\"
-	Bob: \"Thanks, I won't forget this.\""
+	Bob: increase_trust(), \"Thanks, I won't forget this.\""
