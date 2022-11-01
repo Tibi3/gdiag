@@ -19,10 +19,13 @@ var _context: Dictionary
 var _gdiag: GDiag
 var _tree: Parser.Result
 var _node_stack: Array
+var _placeholder_regex := RegEx.new()
 
 # p_options: Interpreter configuration
 func _init(p_options: Options) -> void:
 	_options = p_options
+	var res := _placeholder_regex.compile("{{\\s*([a-zA-Z0-9_]*?)\\s*}}")
+	assert(res == OK, "Cannot compile _placeholder_regex")
 
 
 # p_context: Should contain everything that was requested via __request__.
@@ -116,8 +119,7 @@ func _visit_paragraph() -> GDiagResult:
 
 	return GDiagResult.new().ok({
 		"character": paragraph["character"],
-		# TODO: handle placeholders
-		"text": paragraph["text"],
+		"text": _visit_text(paragraph["text"]).value,
 		"answers": _visit_answers()
 	})
 
@@ -131,11 +133,10 @@ func _visit_answers() -> Array:
 		# TODO: check condition
 		res[i] = { "key": answers[i]["node"] }
 		if _options.show_partial_answer:
-			# TODO: handle placeholders
-			res[i]["text"] = _tree.nodes[answers[i]["node"]]["text"]
+			res[i]["text"] = _visit_text(_tree.nodes[answers[i]["node"]]["text"]).value
 		else:
-			# TODO: check node's children, handle placeholders
-			res[i]["text"] = _tree.nodes[answers[i]["node"]]["children"][0]["text"]
+			# TODO: check node's children
+			res[i]["text"] = _visit_text(_tree.nodes[answers[i]["node"]]["children"][0]["text"]).value
 
 	return res
 
@@ -202,12 +203,19 @@ func _visit_unary_op(p_op) -> GDiagResult:
 		Lexer.Token.Type.UNARY_MINUS:
 			return GDiagResult.new().ok(-operand.value)
 #		Lexer.Token.Type.NOT:
-#			return GDiagResult.new().ok(-operand.value)
+#			return GDiagResult.new().ok(!operand.value)
 	return GDiagResult.new().ok(0)
 
 
 func _visit_variable(p_var) -> GDiagResult:
 	return GDiagResult.new().ok(_context[p_var["name"]])
+
+
+func _visit_text(p_text: String) -> GDiagResult:
+	for x in _placeholder_regex.search_all(p_text):
+		p_text = p_text.replace(x.strings[0], _context[x.strings[1]])
+
+	return GDiagResult.new().ok(p_text)
 
 
 # Only for type hints
