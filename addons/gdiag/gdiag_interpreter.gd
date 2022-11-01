@@ -92,7 +92,14 @@ func next(p_answer: String = "") -> GDiagResult:
 
 func _visit_jump() -> GDiagResult:
 	var jump: Dictionary = _tree.nodes[_stack_get().name]["children"][_stack_get().index]
-	# TODO: check condition
+	if !jump["condition"].empty():
+		var result := _visit_expression(jump["condition"])
+		if !result.is_ok():
+			return result
+
+		if !result.value:
+			return next()
+
 	if _tree.nodes.has(jump["to"]):
 		_node_stack.push_back(GDiagNode.new(jump["to"], -1))
 		return next()
@@ -127,16 +134,26 @@ func _visit_paragraph() -> GDiagResult:
 func _visit_answers() -> Array:
 	var answers: Array = _tree.nodes[_stack_get().name]["children"][_stack_get().index]["answers"]
 	var res := []
-	res.resize(answers.size())
 
 	for i in range(answers.size()):
-		# TODO: check condition
-		res[i] = { "key": answers[i]["node"] }
+		var condition: Dictionary = answers[i]["condition"]
+		if !condition.empty():
+			var result := _visit_expression(condition)
+
+			if !result.is_ok():
+				# TODO: handle error
+				pass
+
+			if !result.value:
+				continue
+
+		var answer = { "key": answers[i]["node"] }
 		if _options.show_partial_answer:
-			res[i]["text"] = _visit_text(_tree.nodes[answers[i]["node"]]["text"]).value
+			answer["text"] = _visit_text(_tree.nodes[answers[i]["node"]]["text"]).value
 		else:
 			# TODO: check node's children
-			res[i]["text"] = _visit_text(_tree.nodes[answers[i]["node"]]["children"][0]["text"]).value
+			answer["text"] = _visit_text(_tree.nodes[answers[i]["node"]]["children"][0]["text"]).value
+		res.push_back(answer)
 
 	return res
 

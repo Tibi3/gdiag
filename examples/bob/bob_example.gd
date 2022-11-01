@@ -8,7 +8,8 @@ var _gdaig_int := GDiagInterpreter.new(GDiagInterpreter.Options.new())
 func _ready() -> void:
 	var res = _gdaig_int.start({
 		"player_name": "player",
-		"player_hp": 5,
+		"player_hp": 55,
+		"promise": true,
 		"increase_trust": funcref(self, "increase_trust")
 	}, preload("res://examples/bob/bob_dialogue.tres"))
 	assert(res.is_ok(), "Something wrong with bob_dialogue.tres")
