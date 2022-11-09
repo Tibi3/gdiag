@@ -1,6 +1,5 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=3 format=2]
 
-[ext_resource path="res://addons/gdiag/editor/gdiag_text_edit.gd" type="Script" id=1]
 [ext_resource path="res://addons/gdiag/editor/gdiag_editor.gd" type="Script" id=2]
 
 [sub_resource type="StyleBoxEmpty" id=1]
@@ -69,6 +68,7 @@ size_flags_stretch_ratio = 0.25
 [node name="LineEdit" type="LineEdit" parent="VBoxContainer/HSplitContainer/VBoxContainer"]
 margin_right = 197.0
 margin_bottom = 24.0
+placeholder_text = "Filter dialogues (WIP)"
 
 [node name="ItemList" type="ItemList" parent="VBoxContainer/HSplitContainer/VBoxContainer"]
 margin_top = 28.0
@@ -76,11 +76,17 @@ margin_right = 197.0
 margin_bottom = 572.0
 size_flags_vertical = 3
 
-[node name="TabContainer" type="TabContainer" parent="VBoxContainer/HSplitContainer"]
+[node name="VBoxContainer2" type="VBoxContainer" parent="VBoxContainer/HSplitContainer"]
 margin_left = 209.0
 margin_right = 1016.0
 margin_bottom = 572.0
 size_flags_horizontal = 3
+
+[node name="TabContainer" type="TabContainer" parent="VBoxContainer/HSplitContainer/VBoxContainer2"]
+margin_right = 807.0
+margin_bottom = 543.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
 custom_constants/label_valign_fg = 0
 custom_constants/hseparation = 0
 custom_constants/label_valign_bg = 0
@@ -89,58 +95,12 @@ custom_constants/side_margin = 0
 custom_styles/panel = SubResource( 1 )
 tabs_visible = false
 
-[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/HSplitContainer/TabContainer"]
-anchor_right = 1.0
-anchor_bottom = 1.0
-size_flags_horizontal = 3
-
-[node name="TextEdit" type="TextEdit" parent="VBoxContainer/HSplitContainer/TabContainer/VBoxContainer"]
-margin_right = 807.0
-margin_bottom = 543.0
-size_flags_vertical = 3
-text = "__request__
-	player_name: String
-	player_hp: int
-	promise: bool
-	increase_trust: func
-	
-__characters__
-	Bob, Player
-
-# Comment
-[MAIN]:
-	Bob: if player_name != \"Sanyi\", \"Hello {{ player_name }}!\"
-	Bob: if player_name == \"Sanyi\" && 5 != 6.12, \"Hi :)\"
-	Player: \"Hey.\"
-	Bob: \"I'm looking for Jack. Do you know where is him?\"
-		- CANNOT_TELL_YOU, if promise, main
-		- NO, main
-		- YES, main
-	Bob: \"Text after branching\"
-
-[CANNOT_TELL_YOU]:
-	Player: \"I do, but I can't tell you! sorry..\"
-	Bob: \"So you are on his side...\"
-	
-[NO]:
-	Player: \"No..\"
-	Bob: \"Oh..\"
-
-[YES]:
-	Player: \"He is at the lake.\"
-	Bob: increase_trust(), \"Thanks, I won't forget this.\""
-highlight_current_line = true
-syntax_highlighting = true
-show_line_numbers = true
-bookmark_gutter = true
-breakpoint_gutter = true
-fold_gutter = true
-hiding_enabled = true
-caret_blink = true
-script = ExtResource( 1 )
-
-[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/HSplitContainer/TabContainer/VBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/HSplitContainer/VBoxContainer2"]
 margin_top = 547.0
 margin_right = 807.0
 margin_bottom = 572.0
 rect_min_size = Vector2( 0, 25 )
+
+[connection signal="pressed" from="VBoxContainer/HBoxContainer/Button" to="." method="_on_docs_button_pressed"]
+[connection signal="pressed" from="VBoxContainer/HBoxContainer/Button2" to="." method="_on_github_button_pressed"]
+[connection signal="item_selected" from="VBoxContainer/HSplitContainer/VBoxContainer/ItemList" to="." method="_on_ui_dialogue_list_item_selected"]

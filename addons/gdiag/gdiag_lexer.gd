@@ -89,6 +89,8 @@ func _init() -> void:
 
 # reset errors, return an array of tokens
 func get_tokens(p_from: String) -> Array:
+	_current_column = 1
+	_current_column = 1
 	_errors = []
 	var tokens := []
 	var original_length: int

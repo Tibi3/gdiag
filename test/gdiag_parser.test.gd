@@ -15,9 +15,9 @@ __characters__
 	Player, Jane
 
 [MAIN]:
-	jump: if true or false, HERE
+	jump if true or false: HERE
 	jump: HERE
-	Jane: if player_name == "Szia", "Hello!"
+	Jane if player_name == "Szia": "Hello!"
 		- HI, main
 		- HELLO, main
 		- HEY, optional
@@ -37,8 +37,8 @@ __characters__
 	var tokens := lexer.get_tokens(src)
 	var result := parser.parse(tokens)
 
-#	print(result)
-#	print(parser.get_errors())
+	print(result)
+	print(parser.get_errors())
 	asserts.is_true(true)
 
 

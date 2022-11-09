@@ -9,10 +9,13 @@ func _ready() -> void:
 	var res = _gdaig_int.start({
 		"player_name": "player",
 		"player_hp": 55,
-		"promise": true,
+		"found_secret_item": false,
+		"know_where_is_jack": false,
 		"increase_trust": funcref(self, "increase_trust")
 	}, preload("res://examples/bob/bob_dialogue.tres"))
-	assert(res.is_ok(), "Something wrong with bob_dialogue.tres")
+
+	# str(...) is a quick and dirty way to print all errors
+	assert(res.is_ok(), "Something wrong with bob_dialogue.tres:\n\t%s" % str(res.error))
 	_next()
 
 

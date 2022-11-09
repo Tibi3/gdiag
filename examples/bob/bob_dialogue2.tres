@@ -10,7 +10,7 @@ source = "__request__
 	found_secret_item: bool
 	know_where_is_jack: bool
 	increase_trust: func
-	
+
 __characters__
 	Bob, Player
 

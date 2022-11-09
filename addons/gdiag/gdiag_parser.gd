@@ -48,13 +48,10 @@ func get_errors() -> Array:
 	return _errors
 
 
-# TODO: BFM
-"""
-<gdiag_script>				::= <request> <characters> <node>+
-<request>					::= "__request__" (<id> ":" <type>)+
-"""
 func parse(p_tokens: Array) -> Result:
 	_tokens = p_tokens
+	_errors = []
+	_current_index = -1
 	var result := Result.new()
 
 	if _peek().type == Lexer.Token.Type.REQUEST:
@@ -183,14 +180,14 @@ func _parse_paragraph() -> Dictionary:
 		"text": "",
 		"answers": []
 	}
-	_match_and_eat(Lexer.Token.Type.COLON)
+
 	if _peek().type == Lexer.Token.Type.IF:
 		var condition = _parse_if()
 		if condition.empty():
 			return {}
 		p["condition"] = condition
-		if _peek().type == Lexer.Token.Type.COMMA:
-			_eat()
+
+	_match_and_eat(Lexer.Token.Type.COLON)
 
 	while _peek().type == Lexer.Token.Type.ID:
 		var action := _parse_function_call()
@@ -201,10 +198,12 @@ func _parse_paragraph() -> Dictionary:
 		if _peek().type == Lexer.Token.Type.COMMA:
 			_eat()
 
-	p["text"] = _match_and_eat(Lexer.Token.Type.STRING_LITERAL).value
+	var text := _match_and_eat(Lexer.Token.Type.STRING_LITERAL)
 
-	if p["text"] == null:
+	if text == null:
 		return {}
+
+	p["text"] = text.value
 
 	while _peek().type == Lexer.Token.Type.MINUS:
 		var answer := _parse_answer()
@@ -223,14 +222,14 @@ func _parse_if() -> Dictionary:
 func _parse_jump() -> Dictionary:
 	var jump := { "type": Type.JUMP, "condition": {}, "to": "" }
 	_eat() # jump
-	_match_and_eat(Lexer.Token.Type.COLON)
 
 	if _peek().type == Lexer.Token.Type.IF:
 		var condition := _parse_if()
 		if condition.empty():
 			return {}
 		jump["condition"] = condition
-		_match_and_eat(Lexer.Token.Type.COMMA)
+
+	_match_and_eat(Lexer.Token.Type.COLON)
 
 	var to := _match_and_eat(Lexer.Token.Type.ID)
 	if to == null:
@@ -425,16 +424,14 @@ func _parse_answer() -> Dictionary:
 	if answer["node"] == null:
 		return {}
 
-	if _match_and_eat(Lexer.Token.Type.COMMA) == null:
-		return {}
-
 	if _peek().type == Lexer.Token.Type.IF:
 		var condition := _parse_if()
 		if condition.empty():
 			return {}
 		answer["condition"] = condition
-		if _match_and_eat(Lexer.Token.Type.COMMA) == null:
-			return {}
+
+	if _match_and_eat(Lexer.Token.Type.COMMA) == null:
+		return {}
 
 	if _peek().type == Lexer.Token.Type.OPTIONAL:
 		_eat()

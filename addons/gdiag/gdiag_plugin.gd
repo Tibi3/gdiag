@@ -7,7 +7,6 @@ const Global := preload("res://addons/gdiag/editor/gdiag_global.gd")
 var gdiag_editor_instance: Control
 
 func _enter_tree() -> void:
-	#	print(get_editor_interface().get_base_control().theme.get_icon_list("EditorIcons"))
 	Global.init(get_editor_interface())
 	gdiag_editor_instance = GDIAG_EDITOR_SCENE.instance()
 	get_editor_interface().get_editor_viewport().add_child(gdiag_editor_instance)
@@ -32,8 +31,16 @@ func handles(object: Object) -> bool:
 	return object is GDiag
 
 
+func edit(object: Object) -> void:
+	Global.e_bus().emit_signal("opened", object)
+
+
+func apply_changes() -> void:
+	Global.e_bus().emit_signal("should_save")
+
+
 func get_plugin_name() -> String:
-	return "GDiag Editor"
+	return "GDiag"
 
 
 func get_plugin_icon() -> Texture:
