@@ -8,13 +8,13 @@ onready var ui_dialogue_list: ItemList = $VBoxContainer/HSplitContainer/VBoxCont
 onready var ui_dialogue_container: TabContainer = $VBoxContainer/HSplitContainer/VBoxContainer2/TabContainer
 
 func _ready() -> void:
-	Global.e_bus().connect("opened", self, "_dialgue_opened")
-	Global.e_bus().connect("closed", self, "_dialgue_closed")
+	Global.e_bus().connect("opened", self, "_dialogue_opened")
+	Global.e_bus().connect("closed", self, "_dialogue_closed")
 	Global.e_bus().connect("should_save", self, "_save_dialogues")
 	ui_dialogue_list.connect("gui_input", self, "_on_ui_dialogue_list_gui_input")
 
 
-func _dialgue_opened(p_dialogue: GDiag) -> void:
+func _dialogue_opened(p_dialogue: GDiag) -> void:
 	for i in ui_dialogue_list.get_item_count():
 		if ui_dialogue_list.get_item_metadata(i) == p_dialogue:
 			ui_dialogue_list.select(i)
@@ -27,7 +27,7 @@ func _dialgue_opened(p_dialogue: GDiag) -> void:
 	ui_dialogue_list.emit_signal("item_selected", ui_dialogue_list.get_item_count() - 1)
 
 
-func _dialgue_closed(p_dialogue: GDiag) -> void:
+func _dialogue_closed(p_dialogue: GDiag) -> void:
 	for i in ui_dialogue_list.get_item_count():
 		if ui_dialogue_list.get_item_metadata(i) == p_dialogue:
 			ui_dialogue_list.remove_item(i)

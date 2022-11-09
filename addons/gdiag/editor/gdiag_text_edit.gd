@@ -45,7 +45,6 @@ func _timer_timeout() -> void:
 
 
 func _analyse() -> void:
-	print("analyise")
 	var tokens := _lexer.get_tokens(text)
 	var lexer_errors := _lexer.get_errors()
 
