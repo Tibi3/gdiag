@@ -5,6 +5,7 @@ const Parser := preload("res://addons/gdiag/gdiag_parser.gd")
 
 class Options:
 	var show_partial_answer := false
+	var enable_localization := false
 
 class GDiagNode:
 	var name: String
@@ -228,11 +229,13 @@ func _visit_variable(p_var) -> GDiagResult:
 	return GDiagResult.new().ok(_context[p_var["name"]])
 
 
-func _visit_text(p_text: String) -> GDiagResult:
-	for x in _placeholder_regex.search_all(p_text):
-		p_text = p_text.replace(x.strings[0], _context[x.strings[1]])
+func _visit_text(p_text: Dictionary) -> GDiagResult:
+	var text: String = tr(p_text["key"]) if _options.enable_localization else p_text["value"]
 
-	return GDiagResult.new().ok(p_text)
+	for x in _placeholder_regex.search_all(text):
+		text = text.replace(x.strings[0], _context[x.strings[1]])
+
+	return GDiagResult.new().ok(text)
 
 
 # Only for type hints

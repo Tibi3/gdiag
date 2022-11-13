@@ -4,8 +4,10 @@ extends TextEdit
 const Global := preload("res://addons/gdiag/editor/gdiag_global.gd")
 const Lexer := preload("res://addons/gdiag/gdiag_lexer.gd")
 const Parser := preload("res://addons/gdiag/gdiag_parser.gd")
+const Rand := preload("res://addons/gdiag/editor/gdiag_random_string.gd")
 
 const PARSE_DELAY_SEC := 1.0
+const TRANSLATION_KEY_LENGTH := 8 # without '~'
 
 const KEYWORDS := [
 	"__request__", "__characters__", "main", "optional", "or", "and", "jump", "close", "true", "false"
@@ -27,6 +29,10 @@ func _ready() -> void:
 	highlight_current_line = true
 	highlight_all_occurrences = true
 	caret_blink = true
+	bookmark_gutter = true
+	breakpoint_gutter = true
+	fold_gutter = true
+
 	add_font_override("font", Global.get_editor_interface().get_base_control().get_font("source", "EditorFonts"))
 
 	_setup_syntax_highlighting()
@@ -34,6 +40,44 @@ func _ready() -> void:
 	_setup_timer()
 
 	connect("text_changed", self, "_text_changed")
+
+
+func generate_translation_keys() -> void:
+	# TODO: use UndoRedo
+	var tokens := _lexer.get_tokens(text)
+	var lexer_errors := _lexer.get_errors()
+
+	if lexer_errors.size() > 0:
+		printerr("Please resolve errors before generating translation keys.")
+		return
+
+	var tree := _parser.parse(tokens)
+	var parser_errors := _parser.get_errors()
+
+	if parser_errors.size() > 0:
+		printerr("Please resolve errors before generating translation keys.")
+		return
+
+	for node in tree.nodes:
+		var previous_line := -1
+		var same_line_counter := 0
+		for child in tree.nodes[node]["children"]:
+			if child["type"] == Parser.Type.PARAGRAPH && child["text"]["translation_key"] == "":
+				var line_number: int = child["text"]["line"] - 1
+				same_line_counter = same_line_counter + 1 if previous_line == line_number else 0
+				var offset := 1 + same_line_counter * (TRANSLATION_KEY_LENGTH + 2)
+
+				# TODO: check key collision
+				var line_content := get_line(line_number).insert(
+						child["text"]["column"] + child["text"]["value"].length() + offset,
+						Rand.rand_str(TRANSLATION_KEY_LENGTH, '~', '~'))
+				set_line(line_number, line_content)
+				previous_line = line_number
+
+
+func get_errors() -> Array:
+	#TODO: Errors
+	return ["Placeholder"]
 
 
 func _text_changed() -> void:
@@ -87,6 +131,7 @@ func _setup_syntax_highlighting() -> void:
 	add_color_region("#", "", settings.get("text_editor/highlighting/comment_color"), true)
 	add_color_region("\"", "\"", settings.get("text_editor/highlighting/string_color"))
 	add_color_region("[", "]", settings.get("text_editor/highlighting/gdscript/function_definition_color"), true)
+	add_color_region("~", "~", settings.get("text_editor/highlighting/comment_color"), true)
 
 	add_color_override("function_color", settings.get("text_editor/highlighting/function_color"))
 	add_color_override("symbol_color", settings.get("text_editor/highlighting/symbol_color"))

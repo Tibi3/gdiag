@@ -44,5 +44,9 @@ func get_plugin_name() -> String:
 
 
 func get_plugin_icon() -> Texture:
-	# TODO: add icon
-	return get_editor_interface().get_base_control().get_icon("Node", "EditorIcons")
+	var img_data := preload("res://addons/gdiag/editor/assets/icon.svg").get_data()
+	var size := get_editor_interface().get_editor_viewport().get_icon("Godot", "EditorIcons").get_size()
+	img_data.resize(size.x, size.y, Image.INTERPOLATE_LANCZOS)
+	var icon := ImageTexture.new()
+	icon.create_from_image(img_data)
+	return icon

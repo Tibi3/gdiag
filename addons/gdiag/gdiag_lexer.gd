@@ -12,6 +12,7 @@ class Token:
 		IF, CLOSE, JUMP,
 		STRING, INT, FLOAT, BOOL, FUNC,
 		ONCE, OPTIONAL, MAIN,
+		TRANSLATION_KEY,
 		ID,
 		INT_LITERAL, FLOAT_LITERAL, BOOL_LITERAL, STRING_LITERAL,
 		EOF
@@ -79,6 +80,7 @@ func _init() -> void:
 	_add_pattern_to(Token.Type.INT_LITERAL, "^\\d+")
 	_add_pattern_to(Token.Type.BOOL_LITERAL, "^(true|false)")
 	_add_pattern_to(Token.Type.STRING_LITERAL, "^\"((?:\\\\|\\\\\"|[^\"])*)\"")
+	_add_pattern_to(Token.Type.TRANSLATION_KEY, "^~([a-zA-Z_0-9]+)?~")
 	_add_pattern_to(Token.Type.ID, "^[a-zA-Z_]+[a-zA-Z_0-9]*")
 
 	_comment_regex = _create_regex("^#.*")
@@ -89,7 +91,7 @@ func _init() -> void:
 
 # reset errors, return an array of tokens
 func get_tokens(p_from: String) -> Array:
-	_current_column = 1
+	_current_line = 1
 	_current_column = 1
 	_errors = []
 	var tokens := []
@@ -126,7 +128,7 @@ func get_tokens(p_from: String) -> Array:
 					tokens.push_back(Token.new(pattern["type"], int(val), _current_line, _current_column))
 				Token.Type.FLOAT_LITERAL:
 					tokens.push_back(Token.new(pattern["type"], float(val), _current_line, _current_column))
-				Token.Type.STRING_LITERAL:
+				Token.Type.STRING_LITERAL, Token.Type.TRANSLATION_KEY:
 					tokens.push_back(Token.new(pattern["type"], res.get_string(1), _current_line, _current_column))
 				Token.Type.BOOL_LITERAL:
 					tokens.push_back(Token.new(pattern["type"], val == "true", _current_line, _current_column))

@@ -80,7 +80,6 @@ func _parse_request() -> Dictionary:
 	while _peek().type == Lexer.Token.Type.ID:
 		var name: String = _eat().value
 
-
 		if _match_and_eat(Lexer.Token.Type.COLON) == null:
 			return {}
 
@@ -177,7 +176,7 @@ func _parse_paragraph() -> Dictionary:
 		"character": _eat().value,
 		"condition": {},
 		"actions": [],
-		"text": "",
+		"text": { "value": "", "translation_key": "", "line": -1, "column": -1 },
 		"answers": []
 	}
 
@@ -203,7 +202,12 @@ func _parse_paragraph() -> Dictionary:
 	if text == null:
 		return {}
 
-	p["text"] = text.value
+	p["text"]["value"] = text.value
+	p["text"]["line"] = text.line
+	p["text"]["column"] = text.column
+
+	if _peek().type == Lexer.Token.Type.TRANSLATION_KEY:
+		p["text"]["translation_key"] = _eat().value
 
 	while _peek().type == Lexer.Token.Type.MINUS:
 		var answer := _parse_answer()

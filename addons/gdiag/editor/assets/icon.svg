@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="52.916668mm"
+   height="52.916668mm"
+   viewBox="0 0 52.916668 52.916668"
+   version="1.1"
+   id="svg5"
+   sodipodi:docname="tibinek_1.svg"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="3.9408307"
+     inkscape:cx="172.17182"
+     inkscape:cy="94.396342"
+     inkscape:window-width="1920"
+     inkscape:window-height="991"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-101.50032,-93.250153)">
+    <path
+       id="rect215"
+       style="fill:#cccccc;stroke-width:1.17141"
+       d="m 142.00977,37.816406 c 0,0 -81.25377,0.03516 -121.851567,0.03516 -4.751886,0 -7.2216,1.589759 -6.835937,6.673829 L 13.125,102.77539 c -0.0066,1.99903 1.865447,4.1239 3.992188,3.97461 l 0.191406,28.88086 32.830078,-27.80664 V 85.037109 H 27.017578 v -8 h 23.855469 c 0.970538,-2.329748 2.992186,-3.517951 6.582031,-3.226562 H 147.45117 V 44.40625 c 0,-4.127528 -1.37541,-6.603277 -5.4414,-6.589844 z M 27.017578,55.037109 h 98.039062 v 8 H 27.017578 Z m 33.587891,22.736329 c -4.065995,-0.01343 -5.441407,2.462316 -5.441407,6.589843 v 55.994139 c -0.297446,4.53207 1.850205,6.35352 6.13086,6.35352 h 89.917968 l 34.09375,28.8789 0.19141,-28.88086 c 2.12674,0.1493 3.99876,-1.97753 3.99218,-3.97656 l -0.19726,-58.248045 c 0.38566,-5.084069 -2.08405,-6.673828 -6.83594,-6.673828 z m 10.017578,18.21875 h 98.037113 v 8.000002 H 70.623047 Z m 0,20.000002 h 98.037113 v 8 H 70.623047 Z"
+       transform="matrix(0.26458333,0,0,0.26458333,101.50032,93.250153)"
+       sodipodi:nodetypes="cccccccccccccscccccccscsccccccccccccccccc" />
+  </g>
+</svg>

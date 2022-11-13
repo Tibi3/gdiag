@@ -17,7 +17,7 @@ __characters__
 [MAIN]:
 	jump if true or false: HERE
 	jump: HERE
-	Jane if player_name == "Szia": "Hello!"
+	Jane if player_name == "Szia": "Hello!"~AAA~
 		- HI, main
 		- HELLO, main
 		- HEY, optional

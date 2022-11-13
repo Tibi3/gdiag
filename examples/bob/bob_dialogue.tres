@@ -16,18 +16,19 @@ __characters__
 
 # Comment
 [MAIN]:
-	Bob if found_secret_item == true: \"You found it!!\"
-	Bob if found_secret_item == false: \"Hello {{ player_name }}!\"
-	Player: \"Hey.\"
-	Bob: \"I'm looking for Jack. Do you know where is him?\"
+	Bob: \"Hello\"~2yK7dqRO~
+	Bob if found_secret_item == true: \"You found it!!\"~58xoWHOY~
+	Bob if found_secret_item == false: \"Hello {{ player_name }}!\"~3a6qt7O7~
+	Player: \"Hey.\"~1JdYF3ww~
+	Bob: \"I'm looking for Jack. Do you know where is him?\"~OZf8ZNYI~
 		- NO, main
 		- YES if know_where_is_jack == true, main
-	Bob: \"Text after branching\"
+	Bob: \"Text after branching\"~aHGJvllD~
 
 [NO]:
-	Player: \"I don't.\"
-	Bob: \"Oh..\"
+	Player: \"I don't.\"~waDbZvXf~
+	Bob: \"Oh..\"~MLDz5L6V~
 
 [YES]:
-	Player: \"He is at the lake.\"
-	Bob: increase_trust(), \"Thanks, I won't forget this.\""
+	Player: \"He is at the lake.\"~JWAHoAiY~
+	Bob: increase_trust(), \"Thanks, I won't forget this.\"~RBmfaRua~"
