@@ -9,13 +9,15 @@ const Rand := preload("res://addons/gdiag/editor/gdiag_random_string.gd")
 const PARSE_DELAY_SEC := 1.0
 const TRANSLATION_KEY_LENGTH := 8 # without '~'
 
-const KEYWORDS := [
-	"__request__", "__characters__", "main", "optional", "or", "and", "jump", "close", "true", "false"
-]
+const KEYWORDS := [ "__request__", "__characters__", "main", "optional", "or", "and", "jump", "close", "true", "false" ]
+const TYPES := [ "int", "float", "bool", "String", "func" ]
 
-const TYPES := [
-	"int", "float", "bool", "String", "func"
-]
+const AUTO_CLOSE := {
+	"\"": "\"",
+	"~": "~",
+	"[": "]",
+	"(": ")"
+}
 
 var _lexer := Lexer.new()
 var _parser := Parser.new()
@@ -108,9 +110,21 @@ func _analyse() -> void:
 
 
 func _gui_input(event: InputEvent) -> void:
-	if event is InputEventKey && event.scancode == KEY_CONTROL && !event.echo:
-		mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if event.pressed else Control.CURSOR_IBEAM
-		Input.parse_input_event(InputEventMouseMotion.new())
+	if event is InputEventKey:
+		if event.scancode == KEY_CONTROL && !event.echo:
+			mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if event.pressed else Control.CURSOR_IBEAM
+			Input.parse_input_event(InputEventMouseMotion.new())
+		elif char(event.unicode) in AUTO_CLOSE:
+			if is_selection_active():
+				if get_selection_from_line() == get_selection_to_line():
+					var line := get_line(get_selection_from_line())
+					line = line.insert(get_selection_from_column(), char(event.unicode))
+					line = line.insert(get_selection_to_column() + 1, AUTO_CLOSE[char(event.unicode)])
+					call_deferred("set_line", get_selection_from_line(), line)
+			else:
+				set_line(cursor_get_line(),
+						get_line(cursor_get_line()).insert(cursor_get_column(),
+						AUTO_CLOSE[char(event.unicode)]))
 
 
 func _setup_syntax_highlighting() -> void:
