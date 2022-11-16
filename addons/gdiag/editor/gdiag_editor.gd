@@ -28,6 +28,8 @@ onready var ui_errors_label: Label = $VBoxContainer/HSplitContainer/VBoxContaine
 onready var ui_new_file_dialog: FileDialog = $NewDialogueDialog
 onready var ui_open_file_dialog: FileDialog = $OpenDialogueDialog
 
+onready var ui_dialogue_list_hide_button: Button = $VBoxContainer/HSplitContainer/VBoxContainer2/HBoxContainer/Button
+
 var _file_menu_items := [{
 	"text": "New Dialogue...",
 	"action": funcref(self, "_open_new_dialogue_dialog")
@@ -46,6 +48,9 @@ func _ready() -> void:
 	Global.e_bus().connect("opened", self, "_dialogue_opened")
 	Global.e_bus().connect("closed", self, "_dialogue_closed")
 	Global.e_bus().connect("should_save", self, "_save_dialogues")
+	ui_dialogue_list_hide_button.icon = Global.get_editor_interface().get_base_control()\
+			.get_icon("Back", "EditorIcons")
+
 	ui_dialogue_list.connect("gui_input", self, "_on_ui_dialogue_list_gui_input")
 	ui_file_menu.get_popup().connect("index_pressed", self, "_file_menu_index_pressed")
 	ui_translation_menu.get_popup().connect("index_pressed", self, "_translation_menu_index_pressed")
@@ -83,11 +88,16 @@ func _dialogue_closed(p_dialogue: GDiag) -> void:
 
 func _save_dialogues() -> void:
 	for i in ui_dialogue_list.get_item_count():
-		var gdiag: GDiag = ui_dialogue_list.get_item_metadata(i)
-		gdiag.source = ui_dialogue_container.get_child(i).text
 		var text := ui_dialogue_list.get_item_text(i)
-		if text.ends_with("(*)"):
-			ui_dialogue_list.set_item_text(i, text.substr(0, text.length() - 3))
+		if !text.ends_with("(*)"):
+			continue
+
+		var gdiag: GDiag = ui_dialogue_list.get_item_metadata(i)
+		var text_editor: GDiagTextEdit = ui_dialogue_container.get_child(i)
+		if text_editor.get_errors().size() > 0:
+			printerr("%s:%d - %s" % [gdiag.resource_path, text_editor.get_errors()[0].line, text_editor.get_errors()[0].get_msg()])
+		gdiag.source = text_editor.text
+		ui_dialogue_list.set_item_text(i, text.substr(0, text.length() - 3))
 
 
 func _on_ui_dialogue_list_item_selected(p_index: int) -> void:
@@ -95,11 +105,18 @@ func _on_ui_dialogue_list_item_selected(p_index: int) -> void:
 		var editor := GDiagTextEdit.new()
 		editor.text = (ui_dialogue_list.get_item_metadata(p_index) as GDiag).source
 		editor.connect("text_changed", self, "_dialogue_editor_text_changed", [p_index])
+		editor.connect("error", self, "_on_text_editor_error", [editor])
 		ui_dialogue_container.add_child(editor)
 
 	ui_dialogue_container.current_tab = p_index
 	ui_dialogue_container.get_child(p_index).call_deferred("grab_focus")
-	ui_errors_label.text = ui_dialogue_container.get_child(p_index).get_errors()[0]
+
+
+func _on_text_editor_error(p_errors: Array, p_editor: GDiagTextEdit) -> void:
+	if p_errors.size() == 0:
+		ui_errors_label.text = ""
+		return
+	ui_errors_label.text = str(p_errors[0])
 
 
 func _on_ui_dialogue_list_gui_input(event: InputEvent) -> void:
@@ -166,3 +183,9 @@ func _on_open_dialogue_dialog_file_selected(path: String) -> void:
 		return
 
 	printerr("Cannot open '%s'. It's not a GDiag Resource." % path)
+
+
+func _on_hide_dialogues_button_pressed() -> void:
+	ui_dialogue_list.get_parent().visible = !ui_dialogue_list.get_parent().visible
+	ui_dialogue_list_hide_button.icon = Global.get_editor_interface().get_base_control()\
+			.get_icon(["Forward", "Back"][int(ui_dialogue_list.get_parent().visible)], "EditorIcons")

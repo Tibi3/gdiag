@@ -1,6 +1,8 @@
 tool
 extends TextEdit
 
+signal error # <string[]>
+
 const Global := preload("res://addons/gdiag/editor/gdiag_global.gd")
 const Lexer := preload("res://addons/gdiag/gdiag_lexer.gd")
 const Parser := preload("res://addons/gdiag/gdiag_parser.gd")
@@ -24,8 +26,20 @@ var _parser := Parser.new()
 var _previous_tree := Parser.Result.new()
 var _timer := Timer.new()
 
+var _last_errors := []
+
+var _error_highlighter := ColorRect.new()
 
 func _ready() -> void:
+	(get_child(1) as VScrollBar).connect("value_changed", self, "_scrolling")
+
+	# Hack: I don't know how to highlight a line, so I just put a semi transparent ColorRect above it.
+	_error_highlighter.color = Color(0.8, 0.305882, 0.305882, 0.415686)
+	_error_highlighter.visible = false
+	_error_highlighter.rect_size = Vector2(1500, get_line_height() - 2)
+	_error_highlighter.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_error_highlighter)
+
 	syntax_highlighting = true
 	show_line_numbers = true
 	highlight_current_line = true
@@ -46,6 +60,7 @@ func _ready() -> void:
 
 func generate_translation_keys() -> void:
 	# TODO: use UndoRedo
+	_last_errors = []
 	var tokens := _lexer.get_tokens(text)
 	var lexer_errors := _lexer.get_errors()
 
@@ -78,8 +93,7 @@ func generate_translation_keys() -> void:
 
 
 func get_errors() -> Array:
-	#TODO: Errors
-	return ["Placeholder"]
+	return _last_errors
 
 
 func _text_changed() -> void:
@@ -95,16 +109,22 @@ func _analyse() -> void:
 	var lexer_errors := _lexer.get_errors()
 
 	if lexer_errors.size() > 0:
-		printerr(lexer_errors)
+		_last_errors = lexer_errors
+		call_deferred("_highlight_error", _last_errors[0].line)
+		emit_signal("error", _last_errors)
 		return
 
 	var tree := _parser.parse(tokens)
 	var parser_errors := _parser.get_errors()
 
 	if parser_errors.size() > 0:
-		printerr(parser_errors)
+		_last_errors = parser_errors
+		call_deferred("_highlight_error", _last_errors[0].line)
+		emit_signal("error", _last_errors)
 		return
 
+	emit_signal("error", [])
+	_hide_error_highlight()
 	_previous_tree = tree
 	_setup_syntax_highlighting()
 
@@ -125,6 +145,11 @@ func _gui_input(event: InputEvent) -> void:
 				set_line(cursor_get_line(),
 						get_line(cursor_get_line()).insert(cursor_get_column(),
 						AUTO_CLOSE[char(event.unicode)]))
+
+
+func _scrolling(param) -> void:
+	if _last_errors.size() > 0:
+		call_deferred("_highlight_error", _last_errors[0].line)
 
 
 func _setup_syntax_highlighting() -> void:
@@ -162,3 +187,14 @@ func _setup_timer() -> void:
 	_timer.one_shot = true
 	_timer.wait_time = PARSE_DELAY_SEC
 	add_child(_timer)
+
+
+func _highlight_error(p_line: int) -> void:
+	var line_pos := get_pos_at_line_column(p_line - 1, 0)
+	_error_highlighter.rect_position.x = 0
+	_error_highlighter.rect_position.y = line_pos.y - get_line_height()
+	_error_highlighter.visible = line_pos.x != -1
+
+
+func _hide_error_highlight() -> void:
+	_error_highlighter.visible = false

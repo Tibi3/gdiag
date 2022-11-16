@@ -28,6 +28,7 @@ margin_bottom = 20.0
 margin_right = 35.0
 margin_bottom = 20.0
 text = "File"
+items = [ "New Dialogue...", null, 0, false, false, 0, 0, null, "", false, "Open Dialogue...", null, 0, false, false, 1, 0, null, "", false ]
 
 [node name="MenuButton2" type="MenuButton" parent="VBoxContainer/HBoxContainer"]
 margin_left = 39.0
@@ -35,6 +36,7 @@ margin_right = 121.0
 margin_bottom = 20.0
 focus_mode = 2
 text = "Translation"
+items = [ "Generate keys", null, 0, false, false, 0, 0, null, "", false ]
 
 [node name="Control" type="Control" parent="VBoxContainer/HBoxContainer"]
 margin_left = 125.0
@@ -108,11 +110,21 @@ margin_right = 807.0
 margin_bottom = 572.0
 rect_min_size = Vector2( 0, 25 )
 
+[node name="Button" type="Button" parent="VBoxContainer/HSplitContainer/VBoxContainer2/HBoxContainer"]
+margin_right = 12.0
+margin_bottom = 25.0
+focus_mode = 0
+enabled_focus_mode = 0
+flat = true
+icon_align = 1
+
 [node name="Label" type="Label" parent="VBoxContainer/HSplitContainer/VBoxContainer2/HBoxContainer"]
+margin_left = 16.0
 margin_top = 5.0
 margin_right = 807.0
 margin_bottom = 19.0
 size_flags_horizontal = 3
+custom_colors/font_color = Color( 1, 0.439216, 0.521569, 1 )
 
 [node name="NewDialogueDialog" type="FileDialog" parent="."]
 margin_right = 500.0
@@ -124,7 +136,7 @@ filters = PoolStringArray( "*.tres; Dialogue" )
 [node name="OpenDialogueDialog" type="FileDialog" parent="."]
 margin_right = 500.0
 margin_bottom = 365.0
-window_title = "Open DIalogue"
+window_title = "Open a File"
 resizable = true
 mode = 0
 filters = PoolStringArray( "*.tres; Dialogue" )
@@ -132,5 +144,6 @@ filters = PoolStringArray( "*.tres; Dialogue" )
 [connection signal="pressed" from="VBoxContainer/HBoxContainer/Button" to="." method="_on_docs_button_pressed"]
 [connection signal="pressed" from="VBoxContainer/HBoxContainer/Button2" to="." method="_on_github_button_pressed"]
 [connection signal="item_selected" from="VBoxContainer/HSplitContainer/VBoxContainer/ItemList" to="." method="_on_ui_dialogue_list_item_selected"]
+[connection signal="pressed" from="VBoxContainer/HSplitContainer/VBoxContainer2/HBoxContainer/Button" to="." method="_on_hide_dialogues_button_pressed"]
 [connection signal="file_selected" from="NewDialogueDialog" to="." method="_on_new_dialogue_dialog_file_selected"]
 [connection signal="file_selected" from="OpenDialogueDialog" to="." method="_on_open_dialogue_dialog_file_selected"]

@@ -10,16 +10,16 @@ source = "__request__
 	found_secret_item: bool
 	know_where_is_jack: bool
 	increase_trust: func
-	
+
 __characters__
 	Bob, Player
 
 # Comment
 [MAIN]:
-	Bob: \"Hello\"~2yK7dqRO~
+	Bob: \"Hello\"~k3eSg8W9~
 	Bob if found_secret_item == true: \"You found it!!\"~58xoWHOY~
 	Bob if found_secret_item == false: \"Hello {{ player_name }}!\"~3a6qt7O7~
-	Player: \"Hey.\"~1JdYF3ww~
+	Player: \"Hey.\"~RxJahXZc~
 	Bob: \"I'm looking for Jack. Do you know where is him?\"~OZf8ZNYI~
 		- NO, main
 		- YES if know_where_is_jack == true, main
@@ -31,4 +31,5 @@ __characters__
 
 [YES]:
 	Player: \"He is at the lake.\"~JWAHoAiY~
-	Bob: increase_trust(), \"Thanks, I won't forget this.\"~RBmfaRua~"
+	Bob: increase_trust(), \"Thanks, I won't forget this.\"~RBmfaRua~
+"
