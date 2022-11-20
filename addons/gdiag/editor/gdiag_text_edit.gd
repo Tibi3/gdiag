@@ -11,7 +11,9 @@ const Rand := preload("res://addons/gdiag/editor/gdiag_random_string.gd")
 const PARSE_DELAY_SEC := 1.0
 const TRANSLATION_KEY_LENGTH := 8 # without '~'
 
-const KEYWORDS := [ "__request__", "__characters__", "main", "optional", "or", "and", "jump", "close", "true", "false" ]
+const KEYWORDS := [
+	"__request__", "__characters__", "main", "optional", "or", "and", "jump", "close", "true", "false", "one_of"
+]
 const TYPES := [ "int", "float", "bool", "String", "func" ]
 
 const AUTO_CLOSE := {
@@ -79,6 +81,7 @@ func generate_translation_keys() -> void:
 		var previous_line := -1
 		var same_line_counter := 0
 		for child in tree.nodes[node]["children"]:
+			# TODO: include paragraph from one_of
 			if child["type"] == Parser.Type.PARAGRAPH && child["text"]["translation_key"] == "":
 				var line_number: int = child["text"]["end_at_line"] - 1
 				same_line_counter = same_line_counter + 1 if previous_line == line_number else 0

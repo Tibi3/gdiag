@@ -72,12 +72,15 @@ func next(p_answer: String = "") -> GDiagResult:
 
 		match current_node["children"][_stack_get().index]["type"]:
 			Parser.Type.PARAGRAPH:
-				var p := _visit_paragraph()
-				if typeof(p.value) == TYPE_BOOL:
+				var p := _visit_paragraph(current_node["children"][_stack_get().index])
+				# if paragraph condition evaluates to false we can skip it
+				if typeof(p.value) == TYPE_BOOL && p.value == false:
 					return next()
 				return p
 			Parser.Type.JUMP:
-				return _visit_jump()
+				return _visit_jump(current_node["children"][_stack_get().index])
+			Parser.Type.ONE_OF:
+				return _visit_one_of(current_node["children"][_stack_get().index])
 
 		return GDiagResult.new().ok(true)
 	elif _tree.nodes.has(p_answer):
@@ -91,34 +94,47 @@ func next(p_answer: String = "") -> GDiagResult:
 				{ "name": p_answer}))
 
 
-func _visit_jump() -> GDiagResult:
-	var jump: Dictionary = _tree.nodes[_stack_get().name]["children"][_stack_get().index]
-	if !jump["condition"].empty():
-		var result := _visit_expression(jump["condition"])
+func _visit_jump(p_jump: Dictionary) -> GDiagResult:
+	if !p_jump["condition"].empty():
+		var result := _visit_expression(p_jump["condition"])
 		if !result.is_ok():
 			return result
 
 		if !result.value:
 			return next()
 
-	if _tree.nodes.has(jump["to"]):
-		_node_stack.push_back(GDiagNode.new(jump["to"], -1))
+	if _tree.nodes.has(p_jump["to"]):
+		_node_stack.push_back(GDiagNode.new(p_jump["to"], -1))
 		return next()
 
 	return GDiagResult.new().err(GDiagError.new(
 			GDiagError.Code.I_NODE_NOT_FOUND,
 			-1, -1, # TODO
-			{ "name": jump["to"]}))
+			{ "name": p_jump["to"]}))
 
 
-func _visit_paragraph() -> GDiagResult:
-	var paragraph: Dictionary = _tree.nodes[_stack_get().name]["children"][_stack_get().index]
+func _visit_one_of(p_one_of: Dictionary) -> GDiagResult:
+	var weight_sum := 0
+	for opt in p_one_of["options"]:
+		weight_sum += opt["weight"]
 
-	for action in paragraph["actions"]:
+	var number := randi() % weight_sum
+	var index := 0
+	for opt in p_one_of["options"]:
+		if number < opt["weight"]:
+			break
+		number -= opt["weight"]
+		index += 1
+
+	return _visit_paragraph(p_one_of["options"][index])
+
+
+func _visit_paragraph(p_paragraph: Dictionary) -> GDiagResult:
+	for action in p_paragraph["actions"]:
 		_visit_action(action)
 
-	if !paragraph["condition"].empty():
-		var result := _visit_expression(paragraph["condition"])
+	if !p_paragraph["condition"].empty():
+		var result := _visit_expression(p_paragraph["condition"])
 		if !result.is_ok():
 			return result
 
@@ -126,18 +142,17 @@ func _visit_paragraph() -> GDiagResult:
 			return GDiagResult.new().ok(false)
 
 	return GDiagResult.new().ok({
-		"character": paragraph["character"],
-		"text": _visit_text(paragraph["text"]).value,
-		"answers": _visit_answers()
+		"character": p_paragraph["character"],
+		"text": _visit_text(p_paragraph["text"]).value,
+		"answers": _visit_answers(p_paragraph["answers"])
 	})
 
 
-func _visit_answers() -> Array:
-	var answers: Array = _tree.nodes[_stack_get().name]["children"][_stack_get().index]["answers"]
+func _visit_answers(p_answers: Array) -> Array:
 	var res := []
 
-	for i in range(answers.size()):
-		var condition: Dictionary = answers[i]["condition"]
+	for i in range(p_answers.size()):
+		var condition: Dictionary = p_answers[i]["condition"]
 		if !condition.empty():
 			var result := _visit_expression(condition)
 
@@ -148,20 +163,20 @@ func _visit_answers() -> Array:
 			if !result.value:
 				continue
 
-		var answer = { "key": answers[i]["node"] }
+		var answer = { "key": p_answers[i]["node"] }
 		if _options.show_partial_answer:
-			answer["text"] = _visit_text(_tree.nodes[answers[i]["node"]]["text"]).value
+			answer["text"] = _visit_text(_tree.nodes[p_answers[i]["node"]]["text"]).value
 		else:
 			# TODO: check node's children
-			answer["text"] = _visit_text(_tree.nodes[answers[i]["node"]]["children"][0]["text"]).value
+			answer["text"] = _visit_text(_tree.nodes[p_answers[i]["node"]]["children"][0]["text"]).value
 		res.push_back(answer)
 
 	return res
 
 
-func _visit_action(action: Dictionary) -> GDiagResult:
-	var func_ref: FuncRef = _context[action["name"]]
-	return GDiagResult.new().ok(func_ref.call_funcv(action["params"]))
+func _visit_action(p_action: Dictionary) -> GDiagResult:
+	var func_ref: FuncRef = _context[p_action["name"]]
+	return GDiagResult.new().ok(func_ref.call_funcv(p_action["params"]))
 
 
 func _visit_expression(p_exp: Dictionary) -> GDiagResult:

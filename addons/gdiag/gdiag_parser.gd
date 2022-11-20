@@ -32,7 +32,7 @@ const PRESEDENCE := {
 }
 
 enum Type {
-	ID, PARAGRAPH, JUMP, FUNCTION_CALL, ANSWER,
+	ID, PARAGRAPH, JUMP, ONE_OF, FUNCTION_CALL, ANSWER,
 	BINARY_OP, UNARY_OP,
 	INT, FLOAT, BOOL, STRING
 	VARIABLE, LITERAL
@@ -43,6 +43,7 @@ var _tokens: Array
 var _errors: Array
 
 var _current_index: int = -1
+var _parse_result: Result
 
 func get_errors() -> Array:
 	return _errors
@@ -52,25 +53,25 @@ func parse(p_tokens: Array) -> Result:
 	_tokens = p_tokens
 	_errors = []
 	_current_index = -1
-	var result := Result.new()
+	_parse_result = Result.new()
 
 	if _peek().type == Lexer.Token.Type.REQUEST:
-		result.request = _parse_request()
-		if result.request.empty():
-			return result
+		_parse_result.request = _parse_request()
+		if _parse_result.request.empty():
+			return _parse_result
 
 	if _peek().type == Lexer.Token.Type.CHARACTERS:
-		result.characters = _parse_characters()
-		if result.characters.empty():
-			return result
+		_parse_result.characters = _parse_characters()
+		if _parse_result.characters.empty():
+			return _parse_result
 
 	while _peek().type != Lexer.Token.Type.EOF:
 		var node := _parse_node()
 		if node.empty():
-			return result
-		result.nodes[node.name] = node
+			return _parse_result
+		_parse_result.nodes[node.name] = node
 
-	return result
+	return _parse_result
 
 
 func _parse_request() -> Dictionary:
@@ -138,18 +139,20 @@ func _parse_node() -> Dictionary:
 		return {}
 
 	while true:
-		if _peek().type == Lexer.Token.Type.JUMP:
-			var res := _parse_jump()
-			if res.empty():
-				return {}
-			node["children"].push_back(res)
-		elif _peek().type == Lexer.Token.Type.ID:
-			var res := _parse_paragraph()
-			if res.empty():
-				return {}
-			node["children"].push_back(res)
-		else:
-			break
+		var res: Dictionary
+
+		match _peek().type:
+			Lexer.Token.Type.JUMP:
+				res = _parse_jump()
+			Lexer.Token.Type.ID:
+				res = _parse_paragraph()
+			Lexer.Token.Type.ONE_OF:
+				res = _parse_one_of()
+			_: break
+
+		if res.empty():
+			return {}
+		node["children"].push_back(res)
 
 	if node["children"].size() == 0:
 		_errors.push_back(GDiagError.new(
@@ -170,10 +173,65 @@ func _parse_id() -> Dictionary:
 	return { "type": Type.ID, "name": name }
 
 
+func _parse_one_of() -> Dictionary:
+	var one_of := {
+		"type": Type.ONE_OF,
+		"condition": {},
+		"options": []
+	}
+	_eat()
+	if _peek().type == Lexer.Token.Type.IF:
+		var condition = _parse_if()
+		if condition.empty():
+			return {}
+		one_of["condition"] = condition
+	_match_and_eat(Lexer.Token.Type.COLON)
+
+	while _peek().type == Lexer.Token.Type.MINUS:
+		_eat()
+		var weight := 1
+		if _peek().type == Lexer.Token.Type.INT_LITERAL:
+			weight = _eat().value
+
+		if _peek().type != Lexer.Token.Type.ID:
+			_errors.push_back(GDiagError.new(
+				GDiagError.Code.P_UNEXPECTED_TOKEN,
+				_peek().line,
+				_peek().column,
+				{
+					"expected": Lexer.Token.get_type_name(Lexer.Token.Type.ID),
+					"token": Lexer.Token.get_type_name(_peek().type)
+				}))
+			return {}
+
+		var p := _parse_paragraph()
+		if p.empty():
+			return {}
+
+		p["weight"] = weight
+		one_of["options"].push_back(p)
+
+	if one_of["options"].size() == 0:
+		# TODO: error
+		pass
+
+	return one_of
+
+
 func _parse_paragraph() -> Dictionary:
+	var character := _eat()
+
+	if !_parse_result.characters.has(character.value):
+		_errors.push_back(GDiagError.new(
+				GDiagError.Code.P_UNKNOW_CHARACTER,
+				character.line,
+				character.column,
+				{ "character": character.value }
+		))
+
 	var p := {
 		"type": Type.PARAGRAPH,
-		"character": _eat().value,
+		"character": character.value,
 		"condition": {},
 		"actions": [],
 		"text": { "value": "", "translation_key": "", "line": -1, "column": -1 },
@@ -202,7 +260,10 @@ func _parse_paragraph() -> Dictionary:
 	if p["text"].empty():
 		return {}
 
-	while _peek().type == Lexer.Token.Type.MINUS:
+	# if we are in a one_of block then '- ID' has two different meaning based on what is the value of the ID.
+	while _peek().type == Lexer.Token.Type.MINUS\
+			&& _peek(2).type == Lexer.Token.Type.ID\
+			&& !_parse_result.characters.has(_peek(2).value):
 		var answer := _parse_answer()
 		if answer.empty():
 			return {}
@@ -363,8 +424,7 @@ func _parse_expression() -> Dictionary:
 				var left = operator_stack.pop_back()
 				operator_stack.push_back(_parse_binary(left, output_queue.pop_front(), right))
 
-	if operator_stack.size() != 1:
-		# I don't know if this branch is reachable or not.
+	if operator_stack.size() > 1:
 		_errors.push_back(GDiagError.new(
 				GDiagError.Code.P_UNEXPECTED_TOKEN_IN_EXPRESSION,
 				_peek().line,

@@ -6,6 +6,7 @@ onready var ui_text := $ColorRect/VBoxContainer/RichTextLabel
 var _gdaig_int := GDiagInterpreter.new(GDiagInterpreter.Options.new())
 
 func _ready() -> void:
+	randomize()
 	var res = _gdaig_int.start({
 		"player_name": "player",
 		"player_hp": 55,

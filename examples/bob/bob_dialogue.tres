@@ -16,6 +16,9 @@ __characters__
 
 # Comment
 [MAIN]:
+	one_of:
+		- 1 Bob: \"Hello\"~hello_key~
+		- 10 Bob: \"Hey\"~RxJahXZc~
 	Bob if found_secret_item == true: 
 		\"You found it!! Great job. Let me write here something, \"
 		\"I want to know how long lines look like in the editor.\"~72Y1vRDl~
