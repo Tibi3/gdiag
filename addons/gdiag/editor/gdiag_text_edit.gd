@@ -123,6 +123,7 @@ func _analyse() -> void:
 		emit_signal("error", _last_errors)
 		return
 
+	_last_errors = []
 	emit_signal("error", [])
 	_hide_error_highlight()
 	_previous_tree = tree

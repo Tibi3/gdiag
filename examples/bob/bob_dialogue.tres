@@ -17,7 +17,8 @@ __characters__
 # Comment
 [MAIN]:
 	Bob: \"Hello\"~k3eSg8W9~
-	Bob if found_secret_item == true: \"You found it!!\"~58xoWHOY~
+	Bob if found_secret_item == true: 
+		\"You found it!! Great job. Let me write here something, I want to know how long lines look like in the editor.\"~58xoWHOY~
 	Bob if found_secret_item == false: \"Hello {{ player_name }}!\"~3a6qt7O7~
 	Player: \"Hey.\"~RxJahXZc~
 	Bob: \"I'm looking for Jack. Do you know where is him?\"~OZf8ZNYI~

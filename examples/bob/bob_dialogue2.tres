@@ -1,0 +1,21 @@
+[gd_resource type="Resource" load_steps=2 format=2]
+
+[ext_resource path="res://addons/gdiag/gdiag.gd" type="Script" id=1]
+
+[resource]
+script = ExtResource( 1 )
+source = "#Author: Tibi
+#Triggers: todo
+
+__request__
+	player_name: String
+	found_secret_item: bool
+
+__characters__
+	Player, Bob
+
+[MAIN]:
+	Bob if found_secret_item == true: \"Wow!! You found it!!\"
+	Bob if found_secret_item == false: \"Hello {{player_name}}!\"
+	Player: \"Hey\"
+"

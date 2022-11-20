@@ -94,6 +94,7 @@ func _save_dialogues() -> void:
 
 		var gdiag: GDiag = ui_dialogue_list.get_item_metadata(i)
 		var text_editor: GDiagTextEdit = ui_dialogue_container.get_child(i)
+		text_editor._analyse()
 		if text_editor.get_errors().size() > 0:
 			printerr("%s:%d - %s" % [gdiag.resource_path, text_editor.get_errors()[0].line, text_editor.get_errors()[0].get_msg()])
 		gdiag.source = text_editor.text
