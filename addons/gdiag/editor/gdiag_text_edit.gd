@@ -80,13 +80,12 @@ func generate_translation_keys() -> void:
 		var same_line_counter := 0
 		for child in tree.nodes[node]["children"]:
 			if child["type"] == Parser.Type.PARAGRAPH && child["text"]["translation_key"] == "":
-				var line_number: int = child["text"]["line"] - 1
+				var line_number: int = child["text"]["end_at_line"] - 1
 				same_line_counter = same_line_counter + 1 if previous_line == line_number else 0
 				var offset := 1 + same_line_counter * (TRANSLATION_KEY_LENGTH + 2)
-
 				# TODO: check key collision
 				var line_content := get_line(line_number).insert(
-						child["text"]["column"] + child["text"]["value"].length() + offset,
+						child["text"]["end_at_column"] + offset,
 						Rand.rand_str(TRANSLATION_KEY_LENGTH, '~', '~'))
 				set_line(line_number, line_content)
 				previous_line = line_number

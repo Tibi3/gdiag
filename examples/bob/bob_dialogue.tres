@@ -16,21 +16,21 @@ __characters__
 
 # Comment
 [MAIN]:
-	Bob: \"Hello\"~k3eSg8W9~
 	Bob if found_secret_item == true: 
-		\"You found it!! Great job. Let me write here something, I want to know how long lines look like in the editor.\"~58xoWHOY~
-	Bob if found_secret_item == false: \"Hello {{ player_name }}!\"~3a6qt7O7~
+		\"You found it!! Great job. Let me write here something, \"
+		\"I want to know how long lines look like in the editor.\"~72Y1vRDl~
+	Bob if found_secret_item == false: \"Hello {{ player_name }}!\"~XQh1Rmd1~
 	Player: \"Hey.\"~RxJahXZc~
-	Bob: \"I'm looking for Jack. Do you know where is him?\"~OZf8ZNYI~
+	Bob: \"I'm looking for Jack. Do you know where is him?\"~TWJw5kG1~
 		- NO, main
 		- YES if know_where_is_jack == true, main
 	Bob: \"Text after branching\"~aHGJvllD~
 
 [NO]:
-	Player: \"I don't.\"~waDbZvXf~
-	Bob: \"Oh..\"~MLDz5L6V~
+	Player: \"I don't.\"~jNo49uxc~
+	Bob: \"Oh..\"~GUyslw9W~
 
 [YES]:
-	Player: \"He is at the lake.\"~JWAHoAiY~
-	Bob: increase_trust(), \"Thanks, I won't forget this.\"~RBmfaRua~
+	Player: \"He is at the lake.\"~LWCssHJg~
+	Bob: increase_trust(), \"Thanks, I won't forget this.\"~UDzr2zBB~
 "

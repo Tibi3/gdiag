@@ -9,8 +9,8 @@ func _ready() -> void:
 	var res = _gdaig_int.start({
 		"player_name": "player",
 		"player_hp": 55,
-		"found_secret_item": false,
-		"know_where_is_jack": false,
+		"found_secret_item": true,
+		"know_where_is_jack": true,
 		"increase_trust": funcref(self, "increase_trust")
 	}, preload("res://examples/bob/bob_dialogue.tres"))
 

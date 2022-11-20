@@ -197,17 +197,10 @@ func _parse_paragraph() -> Dictionary:
 		if _peek().type == Lexer.Token.Type.COMMA:
 			_eat()
 
-	var text := _match_and_eat(Lexer.Token.Type.STRING_LITERAL)
+	p["text"] = _parse_text()
 
-	if text == null:
+	if p["text"].empty():
 		return {}
-
-	p["text"]["value"] = text.value
-	p["text"]["line"] = text.line
-	p["text"]["column"] = text.column
-
-	if _peek().type == Lexer.Token.Type.TRANSLATION_KEY:
-		p["text"]["translation_key"] = _eat().value
 
 	while _peek().type == Lexer.Token.Type.MINUS:
 		var answer := _parse_answer()
@@ -242,6 +235,35 @@ func _parse_jump() -> Dictionary:
 	jump["to"] = to.value
 
 	return jump
+
+
+func _parse_text() -> Dictionary:
+	var text_token := _match_and_eat(Lexer.Token.Type.STRING_LITERAL)
+	var last_token := text_token
+
+	if text_token == null:
+		return {}
+
+	var value: String = text_token.value
+
+	while _peek().type == Lexer.Token.Type.STRING_LITERAL:
+		var str_literal := _eat()
+		value += str_literal.value
+		last_token = str_literal
+
+	var text := {
+		"value": value,
+		"line": text_token.line,
+		"column": text_token.column,
+		"end_at_line": last_token.line,
+		"end_at_column": last_token.column + last_token.value.length(),
+		"translation_key": ""
+	}
+
+	if _peek().type == Lexer.Token.Type.TRANSLATION_KEY:
+		text["translation_key"] = _eat().value
+
+	return text
 
 
 # It's a hacky implementation of the Shunting yard algorithm
