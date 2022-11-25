@@ -15,6 +15,17 @@ class GDiagNode:
 		name = p_name
 		index = p_index
 
+class GDiagParagraph:
+	var character: String
+	var text: String
+	var answers: Array
+
+	func _init(p_character: String, p_text: String, p_answers: Array) -> void:
+		character = p_character
+		text = p_text
+		answers = p_answers
+
+
 var _options: Options
 var _context: Dictionary
 var _gdiag: GDiag
@@ -55,7 +66,7 @@ func start(p_context: Dictionary, p_gdiag: GDiag) -> GDiagResult:
 
 	_node_stack = [GDiagNode.new("MAIN", -1)]
 
-	return GDiagResult.new().ok(true)
+	return GDiagResult.new().ok()
 
 
 func next(p_answer: String = "") -> GDiagResult:
@@ -141,11 +152,10 @@ func _visit_paragraph(p_paragraph: Dictionary) -> GDiagResult:
 		if !result.value:
 			return GDiagResult.new().ok(false)
 
-	return GDiagResult.new().ok({
-		"character": p_paragraph["character"],
-		"text": _visit_text(p_paragraph["text"]).value,
-		"answers": _visit_answers(p_paragraph["answers"])
-	})
+	return GDiagResult.new().ok(GDiagParagraph.new(
+			p_paragraph["character"],
+			_visit_text(p_paragraph["text"]).value,
+			_visit_answers(p_paragraph["answers"])))
 
 
 func _visit_answers(p_answers: Array) -> Array:
@@ -168,6 +178,7 @@ func _visit_answers(p_answers: Array) -> Array:
 			answer["text"] = _visit_text(_tree.nodes[p_answers[i]["node"]]["text"]).value
 		else:
 			# TODO: check node's children
+			# TODO: what should happen if this is a 'one_of' node?
 			answer["text"] = _visit_text(_tree.nodes[p_answers[i]["node"]]["children"][0]["text"]).value
 		res.push_back(answer)
 

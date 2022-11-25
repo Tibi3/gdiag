@@ -10,8 +10,9 @@ enum Code {
 	P_EXPECTED_OPERAND_AFTER_UNARY_OP
 	P_UNEXPECTED_TOKEN_IN_EXPRESSION
 	P_NODE_HAS_NO_PARAGRAPH
-	P_NOT_IMPLEMENTED_YET
 	P_UNKNOW_CHARACTER
+	P_EXPECTED_PARAGRAPH_AFTER_ONE_OF
+	P_NOT_IMPLEMENTED_YET
 	I_MISSING_FROM_CONTEXT
 	I_SHOULD_BE_OF_TYPE
 	I_NODE_NOT_FOUND
@@ -27,6 +28,7 @@ const ERRORS := {
 	Code.P_EXPECTED_OPERAND_AFTER_UNARY_OP: "Expected literal or variable after unary operator(+, -).",
 	Code.P_UNEXPECTED_TOKEN_IN_EXPRESSION: "Unexpected token {token} in expression.",
 	Code.P_NODE_HAS_NO_PARAGRAPH: "Node {name} has no paragraph.",
+	Code.P_EXPECTED_PARAGRAPH_AFTER_ONE_OF: "Expected paragraph after one_of. Did you forget to add '-' before the next line?",
 	Code.P_NOT_IMPLEMENTED_YET: "Not implemented yet.",
 	Code.P_UNKNOW_CHARACTER: "Unknown character '{character}'. Did you forget to add them after __characters__?",
 	Code.I_MISSING_FROM_CONTEXT: "{name} missing from context.",

@@ -1,0 +1,49 @@
+[gd_resource type="Resource" load_steps=2 format=2]
+
+[ext_resource path="res://addons/gdiag/gdiag.gd" type="Script" id=1]
+
+[resource]
+script = ExtResource( 1 )
+source = "__request__	
+	player_name: String
+	change_portrait: func
+
+__characters__
+	Bob, Player
+
+[MAIN]:
+	one_of:
+		- Bob: \"Hello, I'm Bob!\"
+		- Bob: \"Hey, I'm Bob!\"
+	Player: change_portrait(), \"Hello Bob, my name is {{ player_name }}.\"
+	Bob: change_portrait(), \"How are you today?\"
+		- GOOD, main
+		- BAD, main
+
+[GOOD]:
+	Player: \"I'am fine. How are you?\"
+	Bob: \"meh..\"
+	
+[BAD]:
+	Player: \"My hamster died.\"
+	Bob: \"Oh I'm sorry.\"
+	Player: change_portrait(), \"It's fine, he was 62 years old.\"
+	Bob: change_portrait(), \"What? Hamsters don't live that long.\"
+		- HE_WAS_SPECIAL, main
+		- YES_THEY_DO, main
+		
+[HE_WAS_SPECIAL]:
+	Player: \"He was special.\"
+	Bob: \"But how?\"
+	Player: change_portrait(), \"I won't tell you.\"
+
+
+[YES_THEY_DO]:
+	Player: \"Yes they do!\"
+	Bob: \"I'm pretty sure the don't!\"
+		- YES_THEY_DO, main
+		- NO_HAMSTER, main
+		
+[NO_HAMSTER]:
+	Player: \"I mean in hamster years he was 62.\"
+	Bob: \"...\""

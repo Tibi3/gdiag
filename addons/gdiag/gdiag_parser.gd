@@ -179,7 +179,7 @@ func _parse_one_of() -> Dictionary:
 		"condition": {},
 		"options": []
 	}
-	_eat()
+	var one_of_token := _eat()
 	if _peek().type == Lexer.Token.Type.IF:
 		var condition = _parse_if()
 		if condition.empty():
@@ -212,8 +212,11 @@ func _parse_one_of() -> Dictionary:
 		one_of["options"].push_back(p)
 
 	if one_of["options"].size() == 0:
-		# TODO: error
-		pass
+		_errors.push_back(GDiagError.new(
+				GDiagError.Code.P_EXPECTED_PARAGRAPH_AFTER_ONE_OF,
+				one_of_token.line,
+				one_of_token.column))
+		return {}
 
 	return one_of
 
