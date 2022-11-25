@@ -69,12 +69,13 @@ func generate_translation_keys() -> void:
 		printerr("Please resolve errors before generating translation keys.")
 		return
 
-	var tree := _parser.parse(lexer_result.value)
-	var parser_errors := _parser.get_errors()
+	var parser_result := _parser.parse(lexer_result.value)
 
-	if parser_errors.size() > 0:
+	if parser_result.is_error():
 		printerr("Please resolve errors before generating translation keys.")
 		return
+
+	var tree: Parser.Result = parser_result.value
 
 	for node in tree.nodes:
 		var previous_line := -1
@@ -114,11 +115,10 @@ func _analyse() -> void:
 		emit_signal("error", _last_errors)
 		return
 
-	var tree := _parser.parse(lexer_result.value)
-	var parser_errors := _parser.get_errors()
+	var parser_result := _parser.parse(lexer_result.value)
 
-	if parser_errors.size() > 0:
-		_last_errors = parser_errors
+	if parser_result.is_error():
+		_last_errors = parser_result.value
 		call_deferred("_highlight_error", _last_errors[0].line)
 		emit_signal("error", _last_errors)
 		return
@@ -126,7 +126,7 @@ func _analyse() -> void:
 	_last_errors = []
 	emit_signal("error", [])
 	_hide_error_highlight()
-	_previous_tree = tree
+	_previous_tree = parser_result.value
 	_setup_syntax_highlighting()
 
 

@@ -53,11 +53,12 @@ func start(p_context: Dictionary, p_gdiag: GDiag) -> GDiagResult:
 	if lexer_result.is_error():
 		return GDiagResult.new().err(lexer_result.value)
 
-	_tree = parser.parse(lexer_result.value)
-	var parser_errors = parser.get_errors()
+	var parser_result := parser.parse(lexer_result.value)
 
-	if parser_errors.size() > 0:
-		return GDiagResult.new().err(parser_errors)
+	if parser_result.is_error():
+		return parser_result
+
+	_tree = parser_result.value
 
 	var missing_from_context := _check_context(_context, _tree)
 	if missing_from_context.size() > 0:

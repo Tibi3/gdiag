@@ -89,7 +89,8 @@ func _init() -> void:
 	assert(TOKEN_PATTERNS.size() == Token.Type.keys().size() - 3,
 			"Should be one pattern for every token type except EOF, UNARY_PLUS, UNARY_MINUS.")
 
-# reset errors, return an array of tokens
+
+# return an array of Token or GDiagError
 func get_tokens(p_from: String) -> GDiagResult:
 	_current_line = 1
 	_current_column = 1
