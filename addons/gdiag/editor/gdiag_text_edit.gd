@@ -63,14 +63,13 @@ func _ready() -> void:
 func generate_translation_keys() -> void:
 	# TODO: use UndoRedo
 	_last_errors = []
-	var tokens := _lexer.get_tokens(text)
-	var lexer_errors := _lexer.get_errors()
+	var lexer_result := _lexer.get_tokens(text)
 
-	if lexer_errors.size() > 0:
+	if lexer_result.is_error():
 		printerr("Please resolve errors before generating translation keys.")
 		return
 
-	var tree := _parser.parse(tokens)
+	var tree := _parser.parse(lexer_result.value)
 	var parser_errors := _parser.get_errors()
 
 	if parser_errors.size() > 0:
@@ -107,16 +106,15 @@ func _timer_timeout() -> void:
 
 
 func _analyse() -> void:
-	var tokens := _lexer.get_tokens(text)
-	var lexer_errors := _lexer.get_errors()
+	var lexer_result := _lexer.get_tokens(text)
 
-	if lexer_errors.size() > 0:
-		_last_errors = lexer_errors
+	if lexer_result.is_error():
+		_last_errors = lexer_result.value
 		call_deferred("_highlight_error", _last_errors[0].line)
 		emit_signal("error", _last_errors)
 		return
 
-	var tree := _parser.parse(tokens)
+	var tree := _parser.parse(lexer_result.value)
 	var parser_errors := _parser.get_errors()
 
 	if parser_errors.size() > 0:

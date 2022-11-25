@@ -39,7 +39,6 @@ var TOKEN_PATTERNS := []
 
 var _comment_regex: RegEx
 var _whitespace_regex: RegEx
-var _errors := []
 var _current_line: int = 1
 var _current_column: int = 1
 
@@ -91,10 +90,10 @@ func _init() -> void:
 			"Should be one pattern for every token type except EOF, UNARY_PLUS, UNARY_MINUS.")
 
 # reset errors, return an array of tokens
-func get_tokens(p_from: String) -> Array:
+func get_tokens(p_from: String) -> GDiagResult:
 	_current_line = 1
 	_current_column = 1
-	_errors = []
+	var errors := []
 	var tokens := []
 	var original_length: int
 
@@ -146,12 +145,12 @@ func get_tokens(p_from: String) -> Array:
 			continue
 
 		if p_from[0] == "\"":
-			_errors.push_back(GDiagError.new(
+			errors.push_back(GDiagError.new(
 					GDiagError.Code.L_NO_CLOSING_QUOTATION_MARK,
 					_current_line,
 					_current_column))
 		else:
-			_errors.push_back(GDiagError.new(
+			errors.push_back(GDiagError.new(
 					GDiagError.Code.L_UNEXPECTED_TEXT,
 					_current_line,
 					_current_column,
@@ -160,11 +159,8 @@ func get_tokens(p_from: String) -> Array:
 
 	tokens.push_back(Token.new(Token.Type.EOF, null, -1, -1))
 	tokens.push_back(Token.new(Token.Type.EOF, null, -1, -1))
-	return tokens
 
-
-func get_errors() -> Array:
-	return _errors
+	return GDiagResult.new().ok(tokens) if errors.size() == 0 else GDiagResult.new().error(errors)
 
 
 func _add_pattern_to(p_token_type: int, p_regex: String) -> void:

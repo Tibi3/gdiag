@@ -490,12 +490,19 @@ func _parse_variable() -> Dictionary:
 func _parse_function_call() -> Dictionary:
 	var function := {
 		"type": Type.FUNCTION_CALL,
-		"params": [],
+		"args": [],
 		"name": _eat().value
 	}
 
 	_match_and_eat(Lexer.Token.Type.LEFT_PARENTHESIS)
-	# TODO: parse parameters
+# TODO: _parse_expression() consumes the last ')'.
+#	if _peek().type != Lexer.Token.Type.RIGHT_PARENTHESIS:
+#		while true:
+#			var expr := _parse_expression()
+#			function["args"].push_back(expr)
+#			if _peek().type != Lexer.Token.Type.COMMA:
+#				break
+#			_eat()
 	_match_and_eat(Lexer.Token.Type.RIGHT_PARENTHESIS)
 
 	return function

@@ -1,19 +1,19 @@
 class_name GDiagResult
 
 var value = null
-var error = null
+var _is_error := true
 
-func is_ok() -> bool:
-	return error == null
+func is_error() -> bool:
+	return _is_error
 
 
 func ok(p_value = null) -> GDiagResult:
-	assert(error == null, "error is already set")
+	_is_error = false
 	value = p_value
 	return self
 
 
 func err(p_error) -> GDiagResult:
-	assert(value == null, "value is already set")
-	error = p_error
+	_is_error = true
+	value = p_error
 	return self

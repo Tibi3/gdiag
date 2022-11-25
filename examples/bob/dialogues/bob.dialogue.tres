@@ -40,7 +40,7 @@ __characters__
 
 [YES_THEY_DO]:
 	Player: \"Yes they do!\"
-	Bob: \"I'm pretty sure the don't!\"
+	Bob: \"I'm pretty sure they don't!\"
 		- YES_THEY_DO, main
 		- NO_HAMSTER, main
 		

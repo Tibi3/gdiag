@@ -48,13 +48,12 @@ func start(p_context: Dictionary, p_gdiag: GDiag) -> GDiagResult:
 	var lexer := Lexer.new()
 	var parser := Parser.new()
 
-	var tokens := lexer.get_tokens(_gdiag.source)
-	var lexer_errors := lexer.get_errors()
+	var lexer_result := lexer.get_tokens(_gdiag.source)
 
-	if lexer_errors.size() > 0:
-		return GDiagResult.new().err(lexer_errors)
+	if lexer_result.is_error():
+		return GDiagResult.new().err(lexer_result.value)
 
-	_tree = parser.parse(tokens)
+	_tree = parser.parse(lexer_result.value)
 	var parser_errors = parser.get_errors()
 
 	if parser_errors.size() > 0:
@@ -187,7 +186,7 @@ func _visit_answers(p_answers: Array) -> Array:
 
 func _visit_action(p_action: Dictionary) -> GDiagResult:
 	var func_ref: FuncRef = _context[p_action["name"]]
-	return GDiagResult.new().ok(func_ref.call_funcv(p_action["params"]))
+	return GDiagResult.new().ok(func_ref.call_funcv(p_action["args"]))
 
 
 func _visit_expression(p_exp: Dictionary) -> GDiagResult:

@@ -18,7 +18,7 @@ func _ready() -> void:
 
 	var status := _gdaig_int.start(get_global_game_state(), DIALOGUE)
 	# str(...) is a quick and dirty way to print all errors
-	assert(status.is_ok(), "Something wrong with bob.dialogue.tres:\n\t%s" % str(status.error))
+	assert(!status.is_error(), "Something wrong with bob.dialogue.tres:\n\t%s" % str(status.value))
 
 	next()
 
@@ -28,7 +28,7 @@ func next(key := "") -> void:
 		(child as Node).queue_free()
 
 	var result := _gdaig_int.next(key)
-	assert(result.is_ok(), str(result.error))
+	assert(!result.is_error(), str(result.value))
 
 	var node: GDiagInterpreter.GDiagParagraph = result.value
 
