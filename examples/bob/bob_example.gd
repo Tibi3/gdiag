@@ -2,8 +2,8 @@ extends Control
 
 const DIALOGUE := preload("res://examples/bob/dialogues/bob.dialogue.tres")
 
-const BOB := preload("res://examples/bob/assets/bob.png")
-const PLAYER := preload("res://examples/bob/assets/player.png")
+const BOB_TEXTURE := preload("res://examples/bob/assets/bob.png")
+const PLAYER_TEXTURE := preload("res://examples/bob/assets/player.png")
 
 onready var ui_portrait: TextureRect = $DialogBox/Portrait
 onready var ui_name: Label = $DialogBox/Name
@@ -67,8 +67,9 @@ func get_global_game_state() -> Dictionary:
 	}
 
 
-func change_portrait() -> void:
-	ui_portrait.texture = PLAYER if ui_portrait.texture == BOB else BOB
+# In the future this should be replaced with an enum or something.
+func change_portrait(of: String) -> void:
+	ui_portrait.texture = PLAYER_TEXTURE if of == "Player" else BOB_TEXTURE
 
 
 func _create_button(p_text: String, p_key := "") -> Button:

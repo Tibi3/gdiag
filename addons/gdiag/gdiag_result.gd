@@ -17,3 +17,7 @@ func err(p_error) -> GDiagResult:
 	_is_error = true
 	value = p_error
 	return self
+
+
+func _to_string() -> String:
+	return "{ _is_error: %s, value: %s }" % [_is_error, str(value)]

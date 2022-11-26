@@ -108,7 +108,7 @@ func next(p_answer: String = "") -> GDiagResult:
 func _visit_jump(p_jump: Dictionary) -> GDiagResult:
 	if !p_jump["condition"].empty():
 		var result := _visit_expression(p_jump["condition"])
-		if !result.is_ok():
+		if result.is_error():
 			return result
 
 		if !result.value:
@@ -125,6 +125,13 @@ func _visit_jump(p_jump: Dictionary) -> GDiagResult:
 
 
 func _visit_one_of(p_one_of: Dictionary) -> GDiagResult:
+	if !p_one_of["condition"].empty():
+		var res := _visit_expression(p_one_of["condition"])
+		if res.is_error():
+			return res
+		if !res.value:
+			return next()
+
 	var weight_sum := 0
 	for opt in p_one_of["options"]:
 		weight_sum += opt["weight"]
@@ -146,7 +153,7 @@ func _visit_paragraph(p_paragraph: Dictionary) -> GDiagResult:
 
 	if !p_paragraph["condition"].empty():
 		var result := _visit_expression(p_paragraph["condition"])
-		if !result.is_ok():
+		if result.is_error():
 			return result
 
 		if !result.value:
@@ -166,7 +173,7 @@ func _visit_answers(p_answers: Array) -> Array:
 		if !condition.empty():
 			var result := _visit_expression(condition)
 
-			if !result.is_ok():
+			if result.is_error():
 				# TODO: handle error
 				pass
 
@@ -187,7 +194,15 @@ func _visit_answers(p_answers: Array) -> Array:
 
 func _visit_action(p_action: Dictionary) -> GDiagResult:
 	var func_ref: FuncRef = _context[p_action["name"]]
-	return GDiagResult.new().ok(func_ref.call_funcv(p_action["args"]))
+	var arg_values := []
+
+	for arg in p_action["args"]:
+		var res := _visit_expression(arg)
+		if res.is_error():
+			return res
+		arg_values.push_back(res.value)
+
+	return GDiagResult.new().ok(func_ref.call_funcv(arg_values))
 
 
 func _visit_expression(p_exp: Dictionary) -> GDiagResult:

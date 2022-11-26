@@ -345,6 +345,7 @@ func _parse_text() -> GDiagResult: # Dictionary, GDiagError
 func _parse_expression() -> GDiagResult: # Dictionary, GDiagError
 	var operator_stack := []
 	var output_queue := []
+	var expected_rp := 0
 
 	while true:
 		match _peek().type:
@@ -357,11 +358,14 @@ func _parse_expression() -> GDiagResult: # Dictionary, GDiagError
 				var res := _parse_function_call() if _peek(2).type == Lexer.Token.Type.LEFT_PARENTHESIS else _parse_variable()
 				if res.is_error():
 					return res
-
 				output_queue.push_back(res.value)
 			Lexer.Token.Type.LEFT_PARENTHESIS:
 				operator_stack.push_back(_eat())
+				expected_rp += 1
 			Lexer.Token.Type.RIGHT_PARENTHESIS:
+				expected_rp -= 1
+				if expected_rp < 0:
+					break
 				_eat()
 				if operator_stack.size() <= 1:
 					return GDiagResult.new().error(GDiagError.new(
@@ -426,7 +430,7 @@ func _parse_expression() -> GDiagResult: # Dictionary, GDiagError
 				operator_stack.push_back(_parse_unary(output_queue.pop_front(), operator_stack.pop_back()))
 			_:
 				if operator_stack.size() < 2:
-					return GDiagResult.new().error(GDiagError.new(
+					return GDiagResult.new().err(GDiagError.new(
 							GDiagError.Code.P_UNEXPECTED_TOKEN_IN_EXPRESSION,
 							_peek().line,
 							_peek().column,
@@ -442,7 +446,7 @@ func _parse_expression() -> GDiagResult: # Dictionary, GDiagError
 				_peek().column,
 				{"token": operator_stack[0]}))
 
-	return operator_stack.pop_back()
+	return GDiagResult.new().ok(operator_stack.pop_back())
 
 
 func _parse_literal() -> Dictionary:
@@ -506,14 +510,17 @@ func _parse_function_call() -> GDiagResult: # Lexer.Token, GdiagError
 	var res := _match_and_eat(Lexer.Token.Type.LEFT_PARENTHESIS)
 	if res.is_error():
 		return res
-# TODO: _parse_expression() consumes the last ')'.
-#	if _peek().type != Lexer.Token.Type.RIGHT_PARENTHESIS:
-#		while true:
-#			var expr := _parse_expression()
-#			function["args"].push_back(expr)
-#			if _peek().type != Lexer.Token.Type.COMMA:
-#				break
-#			_eat()
+
+	if _peek().type != Lexer.Token.Type.RIGHT_PARENTHESIS:
+		while true:
+			res = _parse_expression()
+			if res.is_error():
+				return res
+
+			function["args"].push_back(res.value)
+			if _peek().type != Lexer.Token.Type.COMMA:
+				break
+			_eat()
 	res = _match_and_eat(Lexer.Token.Type.RIGHT_PARENTHESIS)
 	if res.is_error():
 		return res

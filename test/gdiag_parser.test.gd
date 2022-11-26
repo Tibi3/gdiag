@@ -35,7 +35,7 @@ __characters__
 	var parser := GDiagParser.new()
 
 	var tokens := lexer.get_tokens(src)
-	var result := parser.parse(tokens)
+	var result := parser.parse(tokens.value)
 
 	print(result)
 	print(parser.get_errors())
@@ -48,7 +48,7 @@ func _test_expression() -> void:
 	var lexer := GDiagLexer.new()
 	var tokens := lexer.get_tokens("(player_name == \"Jani\" && get_player_hp() == -15) || -5 == 5")
 	var parser := GDiagParser.new()
-	parser._tokens = tokens
+	parser._tokens = tokens.value
 	var result := parser._parse_expression()
 
 #	print(to_json(result))

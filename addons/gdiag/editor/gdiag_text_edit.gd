@@ -25,7 +25,7 @@ const AUTO_CLOSE := {
 
 var _lexer := Lexer.new()
 var _parser := Parser.new()
-var _previous_tree := Parser.Result.new()
+var _previous_tree: Parser.Result
 var _timer := Timer.new()
 
 var _last_errors := []
@@ -33,6 +33,7 @@ var _last_errors := []
 var _error_highlighter := ColorRect.new()
 
 func _ready() -> void:
+	_previous_tree =  Parser.Result.new()
 	(get_child(1) as VScrollBar).connect("value_changed", self, "_scrolling")
 
 	# Hack: I don't know how to highlight a line, so I just put a semi transparent ColorRect above it.

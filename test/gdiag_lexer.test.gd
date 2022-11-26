@@ -13,8 +13,9 @@ func test_single_token() -> void:
 	])
 
 	var lexer := GDiagLexer.new()
-	var tokens := lexer.get_tokens(p["src"])
-
+	var res := lexer.get_tokens(p["src"])
+	asserts.is_false(res.is_error(), "there should be no errors")
+	var tokens: Array = res.value
 	asserts.is_Array(tokens, "tokens should be an array")
 	asserts.is_equal(tokens.size(), 3, "length of tokens should be 3")
 	asserts.is_equal(tokens[0].type, p["expected_type"], "type of token should be %d" % p["expected_type"])
@@ -52,10 +53,11 @@ __characters__
 	Player: "Jumped here"
 """
 	var lexer := GDiagLexer.new()
-	var tokens := lexer.get_tokens(src)
-	var errors := lexer.get_errors()
+	var res := lexer.get_tokens(src)
+	asserts.is_equal(res.is_error(), false, "expected 0 errors")
 
-	asserts.is_equal(errors.size(), 0, "expected 0 errors")
+	var tokens: Array = res.value
+
 	var index := 0
 	for expected in [
 		[GDiagLexer.Token.Type.REQUEST, null],
@@ -153,9 +155,10 @@ func test_get_error() -> void:
 	])
 
 	var lexer := GDiagLexer.new()
-	var __ = lexer.get_tokens(p["src"])
-	var errors := lexer.get_errors()
+	var res := lexer.get_tokens(p["src"])
 
+	asserts.is_true(res.is_error())
+	var errors: Array = res.value
 	asserts.is_Array(errors, "errors should be an array")
 	asserts.is_equal(errors.size(), 1, "length of errors should be 1")
 	asserts.is_equal(errors[0].code, p["expected_error"], "error code should be %d" % p["expected_error"])

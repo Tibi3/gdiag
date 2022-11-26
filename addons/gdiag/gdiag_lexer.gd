@@ -161,7 +161,7 @@ func get_tokens(p_from: String) -> GDiagResult:
 	tokens.push_back(Token.new(Token.Type.EOF, null, -1, -1))
 	tokens.push_back(Token.new(Token.Type.EOF, null, -1, -1))
 
-	return GDiagResult.new().ok(tokens) if errors.size() == 0 else GDiagResult.new().error(errors)
+	return GDiagResult.new().ok(tokens) if errors.size() == 0 else GDiagResult.new().err(errors)
 
 
 func _add_pattern_to(p_token_type: int, p_regex: String) -> void:
