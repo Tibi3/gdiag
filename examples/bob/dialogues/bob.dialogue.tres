@@ -4,19 +4,33 @@
 
 [resource]
 script = ExtResource( 1 )
-source = "__request__	
+source = "# we request the name of the player and a function called change_portrait
+# when we call _gdaig_int.start() in bob_example.gd these two properties should be in the game state
+__request__	
 	player_name: String
 	change_portrait: func
 
+# Our characters
 __characters__
 	Bob, Player
 
+
+# This is where our dialogue begin.
+# Every dialogue contains a [MAIN] node.
 [MAIN]:
+	# randomly choose between 'Hello...' and 'Hey...'
+	# the first one has 3 times higher probability
 	one_of:
 		- 3 Bob: \"Hello, I'm Bob!\"
 		- Bob: \"Hey, I'm Bob!\"
+	# Player says 'Hello Bob, my name is player.'
+	# and calls the change_portrait function
 	Player: change_portrait(\"Player\"), \"Hello Bob, my name is {{ player_name }}.\"
+	# Bob only says this, if player_name equals to 'Bob'
+	# you can test it if you change the player_name property in bob_example.gd
+	Bob if player_name == \"Bob\": \"Wow you are Bob too! :)\"
 	Bob: change_portrait(\"Bob\"), \"How are you today?\"
+		# we can answer to his question by choosing GOOD or BAD
 		- GOOD, main
 		- BAD, main
 
@@ -40,6 +54,7 @@ __characters__
 [YES_THEY_DO]:
 	Player: \"Yes they do!\"
 	Bob: \"I'm pretty sure they don't!\"
+		# yes this is a loop
 		- YES_THEY_DO, main
 		- HAMSTER_YEARS, main
 		

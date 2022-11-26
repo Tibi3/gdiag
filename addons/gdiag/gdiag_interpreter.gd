@@ -34,7 +34,7 @@ var _node_stack: Array
 var _placeholder_regex := RegEx.new()
 
 # p_options: Interpreter configuration
-func _init(p_options: Options) -> void:
+func _init(p_options: Options = Options.new()) -> void:
 	_options = p_options
 	var res := _placeholder_regex.compile("{{\\s*([a-zA-Z0-9_]*?)\\s*}}")
 	assert(res == OK, "Cannot compile _placeholder_regex")
