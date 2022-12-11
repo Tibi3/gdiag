@@ -12,7 +12,7 @@ const PARSE_DELAY_SEC := 1.0
 const TRANSLATION_KEY_LENGTH := 8 # without '~'
 
 const KEYWORDS := [
-	"__request__", "__characters__", "main", "optional", "or", "and", "jump", "close", "true", "false", "one_of"
+	"context", "main", "optional", "or", "and", "jump", "close", "true", "false", "one_of"
 ]
 const TYPES := [ "int", "float", "bool", "String", "func" ]
 
@@ -27,6 +27,7 @@ var _lexer := Lexer.new()
 var _parser := Parser.new()
 var _previous_tree: Parser.Result
 var _timer := Timer.new()
+var _context: Script
 
 var _last_errors := []
 
@@ -55,13 +56,17 @@ func _ready() -> void:
 	add_font_override("font", Global.get_editor_interface().get_base_control().get_font("source", "EditorFonts"))
 
 	_setup_syntax_highlighting()
-	_analyse()
-	_setup_timer()
+	# I'm not sure call_deferred should change anything in _ready, but it does
+	# if I remove call_deferred I got an error sometimes
+	call_deferred("_analyse")
+	call_deferred("_setup_timer")
 
 	connect("text_changed", self, "_text_changed")
 
 
 func generate_translation_keys() -> void:
+	# TODO: Update
+	return
 	# TODO: use UndoRedo
 	_last_errors = []
 	var lexer_result := _lexer.get_tokens(text)
@@ -128,6 +133,16 @@ func _analyse() -> void:
 	emit_signal("error", [])
 	_hide_error_highlight()
 	_previous_tree = parser_result.value
+
+	var context: Script = load(_previous_tree.context)
+	if context == null:
+		printerr("Context cannot be loaded")
+	else:
+		for i in context.get_script_method_list():
+			print(i)
+		_context = context
+
+
 	_setup_syntax_highlighting()
 
 

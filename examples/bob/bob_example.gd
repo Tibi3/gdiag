@@ -5,6 +5,8 @@ const DIALOGUE := preload("res://examples/bob/dialogues/bob.dialogue.tres")
 const BOB_TEXTURE := preload("res://examples/bob/assets/bob.png")
 const PLAYER_TEXTURE := preload("res://examples/bob/assets/player.png")
 
+const GameState := preload("res://examples/bob/game_state.gd")
+
 # The image of the person who is currently speaking (Bob or the Player)
 onready var ui_portrait: TextureRect = $DialogBox/Portrait
 # The name of the person who is currently speaking (Bob or the Player)
@@ -89,11 +91,10 @@ func next(key := "") -> void:
 		ui_answers.add_child(_create_button("next"))
 
 
-func get_global_game_state() -> Dictionary:
-	return {
-		"player_name": "player",
-		"change_portrait": funcref(self, "change_portrait")
-	}
+func get_global_game_state() -> GameState:
+	var res := GameState.new()
+	res.player_name = "Player"
+	return res
 
 
 # this is the function we call in our dialogue

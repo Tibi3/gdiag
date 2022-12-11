@@ -3,13 +3,12 @@
 class Token:
 	enum Type {
 		RIGHT_SQUARE_BRACKET, LEFT_SQUARE_BRACKET, RIGHT_PARENTHESIS, LEFT_PARENTHESIS,
-		COLON, COMMA, PLUS, MINUS, SLASH, ASTERISK, PERCENT_SIGN,
+		COLON, COMMA, PLUS, MINUS, SLASH, ASTERISK, PERCENT_SIGN, DOT,
 		# These two are used in the parser to distinguish binary and unary operations.
 		UNARY_PLUS, UNARY_MINUS,
 		EQUAL, NOT_EQUAL, LESS_THAN, LESS_THAN_EQUAL, GREATER_THAN, GREATER_THAN_EQUAL,
 		OR, AND,
-		REQUEST, CHARACTERS,
-		IF, CLOSE, JUMP, ONE_OF,
+		IF, CLOSE, JUMP, ONE_OF, CONTEXT,
 		STRING, INT, FLOAT, BOOL, FUNC,
 		ONCE, OPTIONAL, MAIN,
 		TRANSLATION_KEY,
@@ -54,6 +53,7 @@ func _init() -> void:
 	_add_pattern_to(Token.Type.SLASH, "^/")
 	_add_pattern_to(Token.Type.ASTERISK, "^\\*")
 	_add_pattern_to(Token.Type.PERCENT_SIGN, "^%")
+	_add_pattern_to(Token.Type.DOT, "^\\.")
 	_add_pattern_to(Token.Type.EQUAL, "^==")
 	_add_pattern_to(Token.Type.NOT_EQUAL, "^!=")
 	_add_pattern_to(Token.Type.LESS_THAN_EQUAL, "^<=")
@@ -62,12 +62,11 @@ func _init() -> void:
 	_add_pattern_to(Token.Type.GREATER_THAN, "^>")
 	_add_pattern_to(Token.Type.OR, "^(or|\\|\\|)")
 	_add_pattern_to(Token.Type.AND, "^(and|&&)")
-	_add_pattern_to(Token.Type.REQUEST, "^__request__")
-	_add_pattern_to(Token.Type.CHARACTERS, "^__characters__")
 	_add_pattern_to(Token.Type.IF, "^if")
 	_add_pattern_to(Token.Type.JUMP, "^jump")
 	_add_pattern_to(Token.Type.CLOSE, "^close")
 	_add_pattern_to(Token.Type.ONE_OF, "^one_of")
+	_add_pattern_to(Token.Type.CONTEXT, "^context")
 	_add_pattern_to(Token.Type.INT, "^int")
 	_add_pattern_to(Token.Type.FLOAT, "^float")
 	_add_pattern_to(Token.Type.BOOL, "^bool")

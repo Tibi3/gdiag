@@ -66,6 +66,10 @@ config/name="Gdiag"
 run/main_scene="res://examples/bob/bob_example.tscn"
 config/icon="res://icon.png"
 
+[autoload]
+
+GameState="*res://examples/bob/game_state.gd"
+
 [display]
 
 window/size/width=1280

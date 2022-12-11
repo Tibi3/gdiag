@@ -4,32 +4,21 @@
 
 [resource]
 script = ExtResource( 1 )
-source = "# we request the name of the player and a function called change_portrait
-# when we call _gdaig_int.start() in bob_example.gd these two properties should be in the game state
-__request__	
-	player_name: String
-	change_portrait: func
+source = "# We can tell the editor where is our game state, so it can offer autocomplete options.
+context: \"res://examples/bob/game_state.gd\"
 
-# Our characters
-__characters__
-	Bob, Player
-
-
-# This is where our dialogue begin.
-# Every dialogue contains a [MAIN] node.
+# This is where our dialogue begins.
+# Every dialogue should contain a [MAIN] node.
 [MAIN]:
-	# randomly choose between 'Hello...' and 'Hey...'
-	# the first one has 3 times higher probability
-	one_of:
-		- 3 Bob: \"Hello, I'm Bob!\"
-		- Bob: \"Hey, I'm Bob!\"
+	# Bob says 'Hello, I'm Bob!'
+	Bob: \"Hello, I'm Bob!\"
 	# Player says 'Hello Bob, my name is player.'
 	# and calls the change_portrait function
-	Player: change_portrait(\"Player\"), \"Hello Bob, my name is {{ player_name }}.\"
+	Player: say_hello(), \"Hello Bob, my name is {{ player_name }}.\"
 	# Bob only says this, if player_name equals to 'Bob'
 	# you can test it if you change the player_name property in bob_example.gd
-	Bob if player_name == \"Bob\": \"Wow you are Bob too! :)\"
-	Bob: change_portrait(\"Bob\"), \"How are you today?\"
+	Bob if player_name == \"Bob\" == true: \"Wow you are Bob too! :)\"
+	Bob: \"How are you today?\"
 		# we can answer to his question by choosing GOOD or BAD
 		- GOOD, main
 		- BAD, main
@@ -41,15 +30,15 @@ __characters__
 [BAD]:
 	Player: \"My hamster died.\"
 	Bob: \"Oh I'm sorry.\"
-	Player: change_portrait(\"Player\"), \"It's fine, he was 62 years old.\"
-	Bob: change_portrait(\"Bob\"), \"What? Hamsters don't live that long.\"
+	Player: \"It's fine, he was 62 years old.\"
+	Bob: \"What? Hamsters don't live that long.\"
 		- HE_WAS_SPECIAL, main
 		- YES_THEY_DO, main
 		
 [HE_WAS_SPECIAL]:
 	Player: \"He was special.\"
 	Bob: \"But how?\"
-	Player: change_portrait(\"Player\"), \"I won't tell you.\"
+	Player: \"I won't tell you.\"
 
 [YES_THEY_DO]:
 	Player: \"Yes they do!\"

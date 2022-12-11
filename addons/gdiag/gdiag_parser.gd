@@ -3,12 +3,11 @@
 const Lexer: GDScript = preload("res://addons/gdiag/gdiag_lexer.gd")
 
 class Result:
-	var request: Dictionary = {}
-	var characters: Dictionary = {}
+	var context: String = ""
 	var nodes: Dictionary = {}
 
 	func _to_string() -> String:
-		return JSON.print({ "request": request, "characters": characters, "nodes": nodes }, "\t")
+		return JSON.print({ "context": context, "nodes": nodes }, "\t")
 
 const PRESEDENCE := {
 	Lexer.Token.Type.LEFT_PARENTHESIS: -99,
@@ -33,9 +32,10 @@ const PRESEDENCE := {
 
 enum Type {
 	ID, PARAGRAPH, JUMP, ONE_OF, FUNCTION_CALL, ANSWER,
+	CONTEXT,
 	BINARY_OP, UNARY_OP,
 	INT, FLOAT, BOOL, STRING
-	VARIABLE, LITERAL
+	IDENTIFIER, LITERAL
 }
 
 
@@ -54,18 +54,11 @@ func parse(p_tokens: Array) -> GDiagResult: # Result, GDiagError[]
 	_current_index = -1
 	_parse_result = Result.new()
 
-	if _peek().type == Lexer.Token.Type.REQUEST:
-		var res := _parse_request()
-		if res.is_error():
-			# maybe in the future we want to return multiple errors.
-			return GDiagResult.new().err([res.value])
-		_parse_result.request = res.value
-
-	if _peek().type == Lexer.Token.Type.CHARACTERS:
-		var res := _parse_characters()
+	if _peek().type == Lexer.Token.Type.CONTEXT:
+		var res := _parse_context()
 		if res.is_error():
 			return GDiagResult.new().err([res.value])
-		_parse_result.characters = res.value
+		_parse_result.context = res.value
 
 	while _peek().type != Lexer.Token.Type.EOF:
 		var res := _parse_node()
@@ -76,51 +69,20 @@ func parse(p_tokens: Array) -> GDiagResult: # Result, GDiagError[]
 	return GDiagResult.new().ok(_parse_result)
 
 
-func _parse_request() -> GDiagResult: # Dictionary, GDiagError
-	var request := {}
-	_eat()
+func _parse_context() -> GDiagResult:
+	var res := _match_and_eat(Lexer.Token.Type.CONTEXT)
+	if res.is_error():
+		return res
 
-	while _peek().type == Lexer.Token.Type.ID:
-		var name: String = _eat().value
+	res = _match_and_eat(Lexer.Token.Type.COLON)
+	if res.is_error():
+		return res
 
-		var res := _match_and_eat(Lexer.Token.Type.COLON)
-		if res.is_error():
-			return res
+	res = _match_and_eat(Lexer.Token.Type.STRING_LITERAL)
+	if res.is_error():
+		return res
 
-		match _peek().type:
-			Lexer.Token.Type.INT,\
-			Lexer.Token.Type.FLOAT,\
-			Lexer.Token.Type.BOOL,\
-			Lexer.Token.Type.STRING,\
-			Lexer.Token.Type.FUNC:
-				request[name] = _eat().type
-			_:
-				return GDiagResult.new().err(GDiagError.new(
-						GDiagError.Code.P_EXPECTED_TYPE,
-						_peek().line,
-						_peek().column,
-						{ "token": _peek() }))
-
-	return GDiagResult.new().ok(request)
-
-
-func _parse_characters() -> GDiagResult: # Dictionary, GDiagError
-	var characters := {}
-	_eat()
-	while true:
-		var res := _match_and_eat(Lexer.Token.Type.ID)
-		if res.is_error():
-			return res
-
-		# In the future we can assign some kind of metadata to the characters
-		characters[res.value.value] = true
-
-		if _peek().type == Lexer.Token.Type.COMMA:
-			_eat()
-			continue
-		break
-
-	return GDiagResult.new().ok(characters)
+	return GDiagResult.new().ok(res.value.value)
 
 
 func _parse_node() -> GDiagResult: # Dictionary, GDiagError
@@ -167,14 +129,6 @@ func _parse_node() -> GDiagResult: # Dictionary, GDiagError
 				{ "name": node["name"] }))
 
 	return GDiagResult.new().ok(node)
-
-
-func _parse_id() -> Dictionary:
-	var name: String = _match_and_eat(Lexer.Token.Type.ID).value
-	if name == null:
-		return {}
-
-	return { "type": Type.ID, "name": name }
 
 
 func _parse_one_of() -> GDiagResult: # Dictionary, GDiagError
@@ -229,14 +183,6 @@ func _parse_one_of() -> GDiagResult: # Dictionary, GDiagError
 func _parse_paragraph() -> GDiagResult: # Dictionary, GDiagError
 	var character := _eat()
 
-	if !_parse_result.characters.has(character.value):
-		return GDiagResult.new().err(GDiagError.new(
-				GDiagError.Code.P_UNKNOW_CHARACTER,
-				character.line,
-				character.column,
-				{ "character": character.value }
-		))
-
 	var p := {
 		"type": Type.PARAGRAPH,
 		"character": character.value,
@@ -255,7 +201,7 @@ func _parse_paragraph() -> GDiagResult: # Dictionary, GDiagError
 	_match_and_eat(Lexer.Token.Type.COLON)
 
 	while _peek().type == Lexer.Token.Type.ID:
-		var res := _parse_function_call()
+		var res := _parse_identifier()
 		if res.is_error():
 			return res
 
@@ -269,10 +215,11 @@ func _parse_paragraph() -> GDiagResult: # Dictionary, GDiagError
 
 	p["text"] = res.value
 
+	# TODO: Fix this
 	# if we are in a one_of block then '- ID' has two different meaning based on what is the value of the ID.
 	while _peek().type == Lexer.Token.Type.MINUS\
-			&& _peek(2).type == Lexer.Token.Type.ID\
-			&& !_parse_result.characters.has(_peek(2).value):
+			&& _peek(2).type == Lexer.Token.Type.ID:
+#			&& !_parse_result.characters.has(_peek(2).value):
 		res = _parse_answer()
 		if res.is_error():
 			return res
@@ -355,7 +302,7 @@ func _parse_expression() -> GDiagResult: # Dictionary, GDiagError
 			Lexer.Token.Type.STRING_LITERAL:
 				output_queue.push_back(_parse_literal())
 			Lexer.Token.Type.ID:
-				var res := _parse_function_call() if _peek(2).type == Lexer.Token.Type.LEFT_PARENTHESIS else _parse_variable()
+				var res := _parse_identifier()
 				if res.is_error():
 					return res
 				output_queue.push_back(res.value)
@@ -440,7 +387,7 @@ func _parse_expression() -> GDiagResult: # Dictionary, GDiagError
 				operator_stack.push_back(_parse_binary(left, output_queue.pop_front(), right))
 
 	if operator_stack.size() > 1:
-		return GDiagResult.new().error(GDiagError.new(
+		return GDiagResult.new().err(GDiagError.new(
 				GDiagError.Code.P_UNEXPECTED_TOKEN_IN_EXPRESSION,
 				_peek().line,
 				_peek().column,
@@ -491,12 +438,44 @@ func _parse_binary(left: Dictionary, op: Lexer.Token, right: Dictionary) -> Dict
 	}
 
 
-func _parse_variable() -> GDiagResult: # Lexer.Token, GdiagError
-	# TODO: check if variable exists
-	return GDiagResult.new().ok({
-		"type": Type.VARIABLE,
-		"name": _eat().value
-	})
+func _parse_identifier() -> GDiagResult: # Lexer.Token, GdiagError
+	var res := _match_and_eat(Lexer.Token.Type.ID)
+	if res.is_error():
+		return res
+
+	var variable := {
+		"type": Type.IDENTIFIER,
+		"name": res.value.value,
+		"call": false,
+		"args": [],
+		"next": {}
+	}
+
+	if _peek().type == Lexer.Token.Type.LEFT_PARENTHESIS:
+		_eat()
+		variable["call"] = true
+		if _peek().type != Lexer.Token.Type.RIGHT_PARENTHESIS:
+			while true:
+				res = _parse_expression()
+				if res.is_error():
+					return res
+
+				variable["args"].push_back(res.value)
+				if _peek().type != Lexer.Token.Type.COMMA:
+					break
+				_eat()
+		res = _match_and_eat(Lexer.Token.Type.RIGHT_PARENTHESIS)
+		if res.is_error():
+			return res
+
+	if _peek().type == Lexer.Token.Type.DOT:
+		_eat()
+		res = _parse_identifier()
+		if res.is_error():
+			return res
+		variable["next"] = res.value
+
+	return GDiagResult.new().ok(variable)
 
 
 func _parse_function_call() -> GDiagResult: # Lexer.Token, GdiagError

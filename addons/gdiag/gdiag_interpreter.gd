@@ -27,7 +27,7 @@ class GDiagParagraph:
 
 
 var _options: Options
-var _context: Dictionary
+var _context: Object
 var _gdiag: GDiag
 var _tree: Parser.Result
 var _node_stack: Array
@@ -40,10 +40,11 @@ func _init(p_options: Options = Options.new()) -> void:
 	assert(res == OK, "Cannot compile _placeholder_regex")
 
 
-# p_context: Should contain everything that was requested via __request__.
-func start(p_context: Dictionary, p_gdiag: GDiag) -> GDiagResult:
+func start(p_context: Object, p_gdiag: GDiag) -> GDiagResult:
 	_gdiag = p_gdiag
 	_context = p_context
+
+	print(_context.get("say_hello"))
 
 	var lexer := Lexer.new()
 	var parser := Parser.new()
@@ -59,10 +60,6 @@ func start(p_context: Dictionary, p_gdiag: GDiag) -> GDiagResult:
 		return parser_result
 
 	_tree = parser_result.value
-
-	var missing_from_context := _check_context(_context, _tree)
-	if missing_from_context.size() > 0:
-		return GDiagResult.new().err(missing_from_context)
 
 	_node_stack = [GDiagNode.new("MAIN", -1)]
 
@@ -149,7 +146,7 @@ func _visit_one_of(p_one_of: Dictionary) -> GDiagResult:
 
 func _visit_paragraph(p_paragraph: Dictionary) -> GDiagResult:
 	for action in p_paragraph["actions"]:
-		_visit_action(action)
+		_visit_identifier(action)
 
 	if !p_paragraph["condition"].empty():
 		var result := _visit_expression(p_paragraph["condition"])
@@ -192,19 +189,6 @@ func _visit_answers(p_answers: Array) -> Array:
 	return res
 
 
-func _visit_action(p_action: Dictionary) -> GDiagResult:
-	var func_ref: FuncRef = _context[p_action["name"]]
-	var arg_values := []
-
-	for arg in p_action["args"]:
-		var res := _visit_expression(arg)
-		if res.is_error():
-			return res
-		arg_values.push_back(res.value)
-
-	return GDiagResult.new().ok(func_ref.call_funcv(arg_values))
-
-
 func _visit_expression(p_exp: Dictionary) -> GDiagResult:
 	# TODO: handle error
 	match p_exp["type"]:
@@ -212,10 +196,8 @@ func _visit_expression(p_exp: Dictionary) -> GDiagResult:
 			return _visit_binary_op(p_exp)
 		Parser.Type.UNARY_OP:
 			return _visit_unary_op(p_exp)
-		Parser.Type.FUNCTION_CALL:
-			return _visit_action(p_exp)
-		Parser.Type.VARIABLE:
-			return _visit_variable(p_exp)
+		Parser.Type.IDENTIFIER:
+			return _visit_identifier(p_exp)
 		_: # should be literal
 			return GDiagResult.new().ok(p_exp["value"])
 
@@ -266,15 +248,21 @@ func _visit_unary_op(p_op) -> GDiagResult:
 	return GDiagResult.new().ok(0)
 
 
-func _visit_variable(p_var) -> GDiagResult:
-	return GDiagResult.new().ok(_context[p_var["name"]])
+func _visit_identifier(p_id: Dictionary, p_context = _context) -> GDiagResult:
+	# TODO: add error handling
+	var res = p_context.callv(p_id.get("name"), p_id.get("args")) if p_id["call"] else p_context[p_id.get("name")]
+
+	if p_id["next"].empty():
+		return GDiagResult.new().ok(res)
+
+	return _visit_identifier(p_id["next"], res)
 
 
 func _visit_text(p_text: Dictionary) -> GDiagResult:
 	var text: String = tr(p_text["key"]) if _options.enable_localization else p_text["value"]
 
 	for x in _placeholder_regex.search_all(text):
-		text = text.replace(x.strings[0], _context[x.strings[1]])
+		text = text.replace(x.strings[0], _context.get(x.strings[1]))
 
 	return GDiagResult.new().ok(text)
 
@@ -285,33 +273,6 @@ func _stack_get() -> GDiagNode:
 
 
 func _check_context(p_context: Dictionary, p_parser_result: Parser.Result) -> Array:
-	var errors := []
-	var context_type: int
-	var requested_type: int
-
-	for request_key in p_parser_result.request.keys():
-		if !p_context.has(request_key):
-			errors.push_back(GDiagError.new(
-					GDiagError.Code.I_MISSING_FROM_CONTEXT,
-					-1, -1, # TODO
-					{ "name": request_key }))
-			continue
-
-		context_type = typeof(p_context[request_key])
-		requested_type = p_parser_result.request[request_key]
-
-		if (context_type == TYPE_INT && requested_type != Lexer.Token.Type.INT)\
-				|| (context_type == TYPE_REAL && requested_type != Lexer.Token.Type.FLOAT)\
-				|| (context_type == TYPE_STRING && requested_type != Lexer.Token.Type.STRING)\
-				|| (context_type == TYPE_BOOL && requested_type != Lexer.Token.Type.BOOL)\
-				|| (p_context[request_key] is FuncRef && requested_type != Lexer.Token.Type.FUNC):
-			errors.push_back(GDiagError.new(
-					GDiagError.Code.I_SHOULD_BE_OF_TYPE,
-					-1, -1, # TODO
-					{
-						"name": request_key,
-						"type": Lexer.Token.get_type_name(requested_type),
-						"got": p_context[request_key] }))
-
-	return errors
+	# TODO: check things
+	return []
 
